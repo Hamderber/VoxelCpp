@@ -1,12 +1,22 @@
 ﻿#include <ksc_log.hpp>
 #include "VoxelCpp/app/App.hpp"
 
+const char *pAPP_NAME = "VoxelCpp";
+
 int main()
 {
-	App::start();
+	App::App VoxelCpp(pAPP_NAME);
 
-	// Actual program
-	ksc_log::info("<< Actual program here >>");
+	try
+	{
+		// Actual program
+		ksc_log::info("<< Actual program here >>");
 
-	App::end();
+		VoxelCpp.loop();
+	}
+	catch (...)
+	{
+		// Crash handler for high-level exceptions. The application still crashes, but this
+		// allows for graceful crash handling
+	}
 }

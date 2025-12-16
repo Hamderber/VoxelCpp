@@ -1,13 +1,30 @@
 #pragma once
+#include <memory>
+#include <VoxelCpp/rendering/Rendering.hpp>
+#include <filesystem>
+
 namespace App
 {
-	/// <summary>
-	/// Start the application. Call this first.
-	/// </summary>
-	void start(void);
+	class App
+	{
+	public:
+		App(const char *pNAME);
+		~App();
+		App(const App &) = delete;
+		App &operator=(const App &) = delete;
 
-	/// <summary>
-	/// End the application. Call this last.
-	/// </summary>
-	void end(void);
+		void loop() const;
+
+		std::filesystem::path get_root();
+
+		std::unique_ptr<Rendering::Rendering> m_Rendering;
+
+		const char *get_name() const;
+		const char *m_pAPP_NAME;
+
+	private:
+		void start_logging(const char *pAPP_NAME);
+
+		std::filesystem::path m_root;
+	};
 }

@@ -20,7 +20,7 @@ file(GLOB_RECURSE VOXELCPP_HEADERS CONFIGURE_DEPENDS
 
 add_executable(VoxelCpp)
 
-target_sources(VoxelCpp PRIVATE ${VOXELCPP_SOURCES} ${VOXELCPP_HEADERS})
+target_sources(VoxelCpp PRIVATE ${VOXELCPP_SOURCES} ${VOXELCPP_HEADERS} "src/rendering/Rendering.cpp" "src/rendering/Window.cpp" "src/rendering/Pipeline.cpp")
 
 target_include_directories(VoxelCpp
   PRIVATE
@@ -34,6 +34,16 @@ set_property(TARGET VoxelCpp PROPERTY
 
 set_property(TARGET VoxelCpp PROPERTY CXX_STANDARD 20)
 set_property(TARGET VoxelCpp PROPERTY CXX_STANDARD_REQUIRED ON)
+
+# Vulkan
+find_package(Vulkan REQUIRED)
+target_link_libraries(VoxelCpp PUBLIC Vulkan::Vulkan)
+
+# GLFW (vcpkg static)
+set(GLFW_INCLUDE_DIR "C:/vcpkg/installed/x64-windows-static/include")
+set(GLFW_LIBRARY     "C:/vcpkg/installed/x64-windows-static/lib/glfw3.lib")
+target_include_directories(VoxelCpp PUBLIC ${GLFW_INCLUDE_DIR})
+target_link_libraries(VoxelCpp PUBLIC ${GLFW_LIBRARY})
 
 # Manual include of each lib is better than a recurse glob of all in /lib according to modern standards
 add_library(KSC_Log STATIC IMPORTED GLOBAL)
