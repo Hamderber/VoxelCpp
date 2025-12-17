@@ -5,10 +5,11 @@
 #include <vulkan/vulkan_core.h>
 #include <ksc_log.hpp>
 #include <format>
+#include <stdexcept>
 
 namespace Rendering
 {
-	Window::Window(int w, int h, const char *pNAME) : m_WIDTH{w}, m_HEIGHT{h}, m_pNAME{pNAME}, m_pWindow{nullptr}
+	Window::Window(int w, int h, const char *pNAME) : WIDTH{w}, HEIGHT{h}, m_pNAME{pNAME}, m_pWindow{nullptr}
 	{
 		if (!glfwInit())
 		{
@@ -20,7 +21,7 @@ namespace Rendering
 		// Temporarily non-resizable (NYI)
 		glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
 
-		m_pWindow = glfwCreateWindow(m_WIDTH, m_HEIGHT, m_pNAME, nullptr, nullptr);
+		m_pWindow = glfwCreateWindow(WIDTH, HEIGHT, m_pNAME, nullptr, nullptr);
 		if (!m_pWindow)
 		{
 			ksc_log::debug(std::format("glfwCreateWindow failed: {}", glfwGetError(nullptr)));
@@ -47,5 +48,14 @@ namespace Rendering
 		glfwPollEvents();
 
 		return glfwWindowShouldClose(m_pWindow);
+	}
+	void Window::create_surface(VkInstance instance, VkSurfaceKHR *pSurface)
+	{
+		if (glfwCreateWindowSurface(instance, m_pWindow, nullptr, pSurface) != VK_SUCCESS)
+		{
+			const char *pErrorMessage = "Failed to create window surface!";
+			ksc_log::error(pErrorMessage);
+			throw std::runtime_error(pErrorMessage);
+		}
 	}
 }

@@ -1,11 +1,9 @@
 ﻿#include <ksc_log.hpp>
 #include "VoxelCpp/app/App.hpp"
 
-const char *pAPP_NAME = "VoxelCpp";
-
 int main()
 {
-	App::App VoxelCpp(pAPP_NAME);
+	App::App VoxelCpp;
 
 	try
 	{
