@@ -11,6 +11,8 @@
 #include <format>
 #include <string>
 #include <array>
+#include <VoxelCpp/rendering/Model.hpp>
+#include <vector>
 
 namespace Rendering
 {
@@ -19,6 +21,7 @@ namespace Rendering
 		m_device{ window },
 		m_swapchain{ m_device, window.get_extent() }
 	{
+		load_models();
 		create_pipeline_layout();
 		create_pipeline();
 		create_command_buffers();
@@ -38,6 +41,18 @@ namespace Rendering
 	{
 		//ksc_log::debug("Render loop");
 		draw_frame();
+	}
+
+	void Rendering::load_models()
+	{
+		// Hello world triangle (model version)
+		std::vector<Model::Vertex> vVerticies {
+			{{ 0.0f, -0.5f }},
+			{{ 0.5f, 0.5f }},
+			{{ -0.5f, 0.5f }}
+		};
+
+		m_pModel = std::make_unique<Model>(m_device, vVerticies);
 	}
 
 	void Rendering::wait_idle()
@@ -127,7 +142,8 @@ namespace Rendering
 			vkCmdBeginRenderPass(m_vCommandBuffers[i], &rendBeginInfo, VK_SUBPASS_CONTENTS_INLINE);
 
 			m_pPipeline->bind(m_vCommandBuffers[i]);
-			vkCmdDraw(m_vCommandBuffers[i], 3, 1, 0, 0);
+			m_pModel.get()->bind(m_vCommandBuffers[i]);
+			m_pModel.get()->draw(m_vCommandBuffers[i]);
 
 			vkCmdEndRenderPass(m_vCommandBuffers[i]);
 			if (vkEndCommandBuffer(m_vCommandBuffers[i]) != VK_SUCCESS)

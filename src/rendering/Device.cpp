@@ -15,7 +15,7 @@
 
 namespace Rendering
 {
-    static VKAPI_ATTR VkBool32 VKAPI_CALL DebugCallback(VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity,
+    static VKAPI_ATTR VkBool32 VKAPI_CALL debug_callback(VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity,
         VkDebugUtilsMessageTypeFlagsEXT messageType, const VkDebugUtilsMessengerCallbackDataEXT *pCALLBACK_DATA,
         void *pUserData)
     {
@@ -24,7 +24,7 @@ namespace Rendering
         return VK_FALSE;
     }
 
-    static VkResult CreateDebugUtilsMessengerEXT(VkInstance instance, const VkDebugUtilsMessengerCreateInfoEXT *pCREATE_INFO,
+    static VkResult create_debug_utils_messenger_EXT(VkInstance instance, const VkDebugUtilsMessengerCreateInfoEXT *pCREATE_INFO,
         const VkAllocationCallbacks *pALLOCATOR, VkDebugUtilsMessengerEXT *pDebugMessenger)
     {
         auto func = (PFN_vkCreateDebugUtilsMessengerEXT)vkGetInstanceProcAddr(instance, "vkCreateDebugUtilsMessengerEXT");
@@ -39,7 +39,7 @@ namespace Rendering
         }
     }
 
-    static void DestroyDebugUtilsMessengerEXT(VkInstance instance, VkDebugUtilsMessengerEXT debugMessenger,
+    static void destroy_debug_utils_messenger_EXT(VkInstance instance, VkDebugUtilsMessengerEXT debugMessenger,
                                               const VkAllocationCallbacks *pALLOCATOR)
     {
         auto func = (PFN_vkDestroyDebugUtilsMessengerEXT)vkGetInstanceProcAddr(instance, "vkDestroyDebugUtilsMessengerEXT");
@@ -67,7 +67,7 @@ namespace Rendering
 
         if (ENABLE_VALIDATION_LAYERS)
         {
-            DestroyDebugUtilsMessengerEXT(m_instance, m_debugMessenger, nullptr);
+            destroy_debug_utils_messenger_EXT(m_instance, m_debugMessenger, nullptr);
         }
 
         vkDestroySurfaceKHR(m_instance, m_surface, nullptr);
@@ -248,7 +248,7 @@ namespace Rendering
         createInfo.messageType = VK_DEBUG_UTILS_MESSAGE_TYPE_GENERAL_BIT_EXT |
             VK_DEBUG_UTILS_MESSAGE_TYPE_VALIDATION_BIT_EXT |
             VK_DEBUG_UTILS_MESSAGE_TYPE_PERFORMANCE_BIT_EXT;
-        createInfo.pfnUserCallback = DebugCallback;
+        createInfo.pfnUserCallback = debug_callback;
     }
 
     void Device::setup_debug_messenger()
@@ -258,7 +258,7 @@ namespace Rendering
         VkDebugUtilsMessengerCreateInfoEXT createInfo;
         populate_debug_messenger_create_info(createInfo);
 
-        if (CreateDebugUtilsMessengerEXT(m_instance, &createInfo, nullptr, &m_debugMessenger) != VK_SUCCESS)
+        if (create_debug_utils_messenger_EXT(m_instance, &createInfo, nullptr, &m_debugMessenger) != VK_SUCCESS)
         {
             const char *pErrorMessage = "Failed to setup Vulkan debug messenger!";
             ksc_log::error(pErrorMessage);

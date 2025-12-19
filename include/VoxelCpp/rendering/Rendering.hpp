@@ -3,6 +3,7 @@
 #include <VoxelCpp/rendering/Device.hpp>
 #include <VoxelCpp/rendering/Window.hpp>
 #include <VoxelCpp/rendering/Swapchain.hpp>
+#include <VoxelCpp/rendering/Model.hpp>
 #include <memory>
 #include <vulkan/vulkan_core.h>
 #include <vector>
@@ -25,6 +26,7 @@ namespace Rendering
 		Window window;
 
 	private:
+		void load_models();
 		void wait_idle();
 		void create_pipeline_layout();
 		void create_pipeline();
@@ -37,5 +39,6 @@ namespace Rendering
 		std::unique_ptr<Pipeline> m_pPipeline;
 		VkPipelineLayout m_pipelineLayout;
 		std::vector<VkCommandBuffer> m_vCommandBuffers;
+		std::unique_ptr<Model> m_pModel;
 	};
 }
