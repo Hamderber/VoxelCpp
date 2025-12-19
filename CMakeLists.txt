@@ -20,7 +20,7 @@ file(GLOB_RECURSE VOXELCPP_HEADERS CONFIGURE_DEPENDS
 
 add_executable(VoxelCpp)
 
-target_sources(VoxelCpp PRIVATE ${VOXELCPP_SOURCES} ${VOXELCPP_HEADERS} "src/rendering/Rendering.cpp" "src/rendering/Window.cpp" "src/rendering/Pipeline.cpp" "src/rendering/Device.cpp")
+target_sources(VoxelCpp PRIVATE ${VOXELCPP_SOURCES} ${VOXELCPP_HEADERS} "src/rendering/Rendering.cpp" "src/rendering/Window.cpp" "src/rendering/Pipeline.cpp" "src/rendering/Device.cpp" "src/rendering/Swapchain.cpp")
 
 target_include_directories(VoxelCpp
   PRIVATE
@@ -52,3 +52,11 @@ set_target_properties(KSC_Log PROPERTIES
   INTERFACE_INCLUDE_DIRECTORIES "${CMAKE_CURRENT_SOURCE_DIR}/include/ksc_log"
 )
 target_link_libraries(VoxelCpp PRIVATE KSC_Log)
+
+add_custom_target(Shaders
+  COMMAND cmd.exe /c "${CMAKE_SOURCE_DIR}/compile_shaders.bat"
+  WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}"
+  VERBATIM
+)
+
+add_dependencies(VoxelCpp Shaders)

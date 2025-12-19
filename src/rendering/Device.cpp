@@ -15,28 +15,23 @@
 
 namespace Rendering
 {
-    static VKAPI_ATTR VkBool32 VKAPI_CALL debugCallback(
-        VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity,
-        VkDebugUtilsMessageTypeFlagsEXT messageType,
-        const VkDebugUtilsMessengerCallbackDataEXT *pCallbackData,
+    static VKAPI_ATTR VkBool32 VKAPI_CALL DebugCallback(VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity,
+        VkDebugUtilsMessageTypeFlagsEXT messageType, const VkDebugUtilsMessengerCallbackDataEXT *pCALLBACK_DATA,
         void *pUserData)
     {
-        ksc_log::error(std::format("Validation layer: {}", pCallbackData->pMessage));
+        ksc_log::error(std::format("Validation layer: {}", pCALLBACK_DATA->pMessage));
 
         return VK_FALSE;
     }
 
-    static VkResult CreateDebugUtilsMessengerEXT(
-        VkInstance instance,
-        const VkDebugUtilsMessengerCreateInfoEXT *pCreateInfo,
-        const VkAllocationCallbacks *pAllocator,
-        VkDebugUtilsMessengerEXT *pDebugMessenger)
+    static VkResult CreateDebugUtilsMessengerEXT(VkInstance instance, const VkDebugUtilsMessengerCreateInfoEXT *pCREATE_INFO,
+        const VkAllocationCallbacks *pALLOCATOR, VkDebugUtilsMessengerEXT *pDebugMessenger)
     {
         auto func = (PFN_vkCreateDebugUtilsMessengerEXT)vkGetInstanceProcAddr(instance, "vkCreateDebugUtilsMessengerEXT");
 
         if (func != nullptr)
         {
-            return func(instance, pCreateInfo, pAllocator, pDebugMessenger);
+            return func(instance, pCREATE_INFO, pALLOCATOR, pDebugMessenger);
         }
         else
         {
@@ -44,16 +39,14 @@ namespace Rendering
         }
     }
 
-    static void DestroyDebugUtilsMessengerEXT(
-        VkInstance instance,
-        VkDebugUtilsMessengerEXT debugMessenger,
-        const VkAllocationCallbacks *pAllocator)
+    static void DestroyDebugUtilsMessengerEXT(VkInstance instance, VkDebugUtilsMessengerEXT debugMessenger,
+                                              const VkAllocationCallbacks *pALLOCATOR)
     {
         auto func = (PFN_vkDestroyDebugUtilsMessengerEXT)vkGetInstanceProcAddr(instance, "vkDestroyDebugUtilsMessengerEXT");
 
         if (func != nullptr)
         {
-            func(instance, debugMessenger, pAllocator);
+            func(instance, debugMessenger, pALLOCATOR);
         }
     }
 
@@ -161,8 +154,8 @@ namespace Rendering
             throw std::runtime_error(pErrorMessage);
         }
 
-        vkGetPhysicalDeviceProperties(m_physicalDevice, &Properties);
-        ksc_log::debug(std::format("Physical device name: {}", Properties.deviceName));
+        vkGetPhysicalDeviceProperties(m_physicalDevice, &properties);
+        ksc_log::debug(std::format("Physical device name: {}", properties.deviceName));
     }
 
     void Device::create_logical_device()
@@ -242,7 +235,7 @@ namespace Rendering
         VkPhysicalDeviceFeatures supportedFeatures;
         vkGetPhysicalDeviceFeatures(device, &supportedFeatures);
 
-        return indices.isComplete() && extensionsSupported && swapChainAdequate &&
+        return indices.is_complete() && extensionsSupported && swapChainAdequate &&
             supportedFeatures.samplerAnisotropy;
     }
 
@@ -255,7 +248,7 @@ namespace Rendering
         createInfo.messageType = VK_DEBUG_UTILS_MESSAGE_TYPE_GENERAL_BIT_EXT |
             VK_DEBUG_UTILS_MESSAGE_TYPE_VALIDATION_BIT_EXT |
             VK_DEBUG_UTILS_MESSAGE_TYPE_PERFORMANCE_BIT_EXT;
-        createInfo.pfnUserCallback = debugCallback;
+        createInfo.pfnUserCallback = DebugCallback;
     }
 
     void Device::setup_debug_messenger()
@@ -395,7 +388,7 @@ namespace Rendering
                 indices.presentFamily = i;
                 indices.presentFamilyHasValue = true;
             }
-            if (indices.isComplete())
+            if (indices.is_complete())
             {
                 break;
             }
@@ -477,7 +470,7 @@ namespace Rendering
         throw std::runtime_error(pErrorMessage);
     }
 
-    void Device::createBuffer(VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties, VkBuffer &rBuffer, 
+    void Device::create_buffer(VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties, VkBuffer &rBuffer, 
                               VkDeviceMemory &rBufferMemory) const
     {
         VkBufferCreateInfo bufferInfo{};

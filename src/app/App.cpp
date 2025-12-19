@@ -40,6 +40,9 @@ namespace App
 
 			rendering->loop();
 		} while (!rendering->window.poll_or_exit());
+		
+		// Put this somewhere else maybe?
+		// device wait idle on exit. like a rendering cleanup func?
 	}
 
 	std::filesystem::path App::get_root()

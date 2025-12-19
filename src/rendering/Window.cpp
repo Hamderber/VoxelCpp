@@ -9,7 +9,7 @@
 
 namespace Rendering
 {
-	Window::Window(int w, int h, const char *pNAME) : WIDTH{w}, HEIGHT{h}, m_pNAME{pNAME}, m_pWindow{nullptr}
+	Window::Window(int w, int h, const char *pNAME) : WIDTH{ w }, HEIGHT{ h }, m_pNAME{ pNAME }, m_pWindow{ nullptr }
 	{
 		if (!glfwInit())
 		{
@@ -49,6 +49,7 @@ namespace Rendering
 
 		return glfwWindowShouldClose(m_pWindow);
 	}
+
 	void Window::create_surface(VkInstance instance, VkSurfaceKHR *pSurface)
 	{
 		if (glfwCreateWindowSurface(instance, m_pWindow, nullptr, pSurface) != VK_SUCCESS)

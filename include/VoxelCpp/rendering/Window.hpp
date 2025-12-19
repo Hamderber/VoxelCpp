@@ -2,6 +2,7 @@
 #define GLFW_INCLUDE_VULKAN
 #include <GLFW/glfw3.h>
 #include <vulkan/vulkan_core.h>
+#include <cstdint>
 
 namespace Rendering
 {
@@ -15,9 +16,9 @@ namespace Rendering
 		Window &operator=(const Window &) = delete;
 
 		bool poll_or_exit();
-		
 		void create_surface(VkInstance instance, VkSurfaceKHR *pSurface);
-		
+		VkExtent2D get_extent() { return { static_cast<uint32_t>(WIDTH), static_cast<uint32_t>(HEIGHT) }; };
+
 		const int WIDTH;
 		const int HEIGHT;
 

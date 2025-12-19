@@ -10,6 +10,11 @@ namespace Rendering
 {
 	struct PipelineConfigInfo
 	{
+		PipelineConfigInfo() = default;
+
+		PipelineConfigInfo(const PipelineConfigInfo &) = delete;
+		PipelineConfigInfo &operator=(const PipelineConfigInfo &) = delete;
+
 		VkViewport viewport;
 		VkRect2D scissor;
 		VkPipelineViewportStateCreateInfo viewportInfo;
@@ -33,13 +38,12 @@ namespace Rendering
 		Pipeline(const Pipeline &) = delete;
 		void operator=(const Pipeline &) = delete;
 
-		static PipelineConfigInfo default_pipeline_config_info(uint32_t width, uint32_t height);
+		static void default_pipeline_config_info(PipelineConfigInfo &rConfigInfo, uint32_t width, uint32_t height);
+		void bind(VkCommandBuffer commandBuffer) const;
 
 	private:
-		static std::vector<char> readFile(const std::string &rPATH);
-
+		static std::vector<char> read_file(const std::string &rPATH);
 		void create_graphics_pipeline(const std::string &rVERT_PATH, const std::string &rFRAG_PATH, const PipelineConfigInfo &rCONFIG_INFO);
-
 		void create_shader_module(const std::vector<char> &rCODE, VkShaderModule *pShaderModule);
 
 		Device &m_rDevice;

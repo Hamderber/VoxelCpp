@@ -2,6 +2,10 @@
 #include <VoxelCpp/rendering/Pipeline.hpp>
 #include <VoxelCpp/rendering/Device.hpp>
 #include <VoxelCpp/rendering/Window.hpp>
+#include <VoxelCpp/rendering/Swapchain.hpp>
+#include <memory>
+#include <vulkan/vulkan_core.h>
+#include <vector>
 
 namespace App { class App; }
 
@@ -21,8 +25,17 @@ namespace Rendering
 		Window window;
 
 	private:
+		void wait_idle();
+		void create_pipeline_layout();
+		void create_pipeline();
+		void create_command_buffers();
+		void draw_frame();
+
 		App::App &m_rApp;
 		Device m_device;
-		Pipeline m_pipeline;
+		Swapchain m_swapchain;
+		std::unique_ptr<Pipeline> m_pPipeline;
+		VkPipelineLayout m_pipelineLayout;
+		std::vector<VkCommandBuffer> m_vCommandBuffers;
 	};
 }
