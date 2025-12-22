@@ -373,7 +373,7 @@ namespace Rendering
         std::vector<VkQueueFamilyProperties> vQueueFamilies(queueFamilyCount);
         vkGetPhysicalDeviceQueueFamilyProperties(device, &queueFamilyCount, vQueueFamilies.data());
 
-        int i = 0;
+        uint32_t i = 0;
         for (const auto &queueFamily : vQueueFamilies)
         {
             if (queueFamily.queueCount > 0 && queueFamily.queueFlags & VK_QUEUE_GRAPHICS_BIT)

@@ -10,19 +10,21 @@
 #include <vulkan/vulkan_core.h>
 #include <format>
 #include <string>
+#include <memory>
 
 namespace Rendering
 {
     Swapchain::Swapchain(Device &rDevice, VkExtent2D extent) : m_rDevice{ rDevice }, m_windowExtent{ extent }
     {
-        ksc_log::debug("Creating swapchain.");
+        init();
+    }
 
-        create_swapchain();
-        create_image_views();
-        create_render_pass();
-        create_depth_resources();
-        create_framebuffers();
-        create_sync_objects();
+    Swapchain::Swapchain(Device &rDevice, VkExtent2D extent, std::shared_ptr<Swapchain> pPrevious) :
+        m_rDevice{ rDevice }, m_windowExtent{ extent }, pOldSwapchain{ pPrevious }
+    {
+        init();
+
+        pOldSwapchain = nullptr;
     }
 
     Swapchain::~Swapchain()
@@ -39,11 +41,11 @@ namespace Rendering
             m_swapchain = nullptr;
         }
 
-        for (int i = 0; i < m_vDepthImages.size(); i++)
+        for (size_t i{}; i < m_vDepthImages.size(); i++)
         {
-            vkDestroyImageView(m_rDevice.device(), m_vDepthImageViews[i], nullptr);
-            vkDestroyImage(m_rDevice.device(), m_vDepthImages[i], nullptr);
-            vkFreeMemory(m_rDevice.device(), m_vDepthImageMemorys[i], nullptr);
+            vkDestroyImageView(m_rDevice.device(), m_vDepthImageViews.at(i), nullptr);
+            vkDestroyImage(m_rDevice.device(), m_vDepthImages.at(i), nullptr);
+            vkFreeMemory(m_rDevice.device(), m_vDepthImageMemorys.at(i), nullptr);
         }
 
         for (auto framebuffer : m_vSwapchainFramebuffers)
@@ -53,16 +55,16 @@ namespace Rendering
 
         vkDestroyRenderPass(m_rDevice.device(), m_renderPass, nullptr);
 
-        for (size_t i = 0; i < image_count(); i++)
+        for (size_t i{}; i < image_count(); i++)
         {
-            vkDestroySemaphore(m_rDevice.device(), m_vRenderFinishedSemaphores[i], nullptr);
+            vkDestroySemaphore(m_rDevice.device(), m_vRenderFinishedSemaphores.at(i), nullptr);
         }
 
         // Clean up sync objects
-        for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++)
+        for (size_t i{}; i < MAX_FRAMES_IN_FLIGHT; i++)
         {
-            vkDestroySemaphore(m_rDevice.device(), m_vImageAvailableSemaphores[i], nullptr);
-            vkDestroyFence(m_rDevice.device(), m_vInFlightFences[i], nullptr);
+            vkDestroySemaphore(m_rDevice.device(), m_vImageAvailableSemaphores.at(i), nullptr);
+            vkDestroyFence(m_rDevice.device(), m_vInFlightFences.at(i), nullptr);
         }
     }
 
@@ -97,12 +99,12 @@ namespace Rendering
         submitInfo.commandBufferCount = 1;
         submitInfo.pCommandBuffers = pBUFFER;
 
-        VkSemaphore pSignalSemaphores[] = { m_vRenderFinishedSemaphores[*pImageIndex] };
+        VkSemaphore pSignalSemaphores[] = { m_vRenderFinishedSemaphores.at(*pImageIndex) };
         submitInfo.signalSemaphoreCount = 1;
         submitInfo.pSignalSemaphores = pSignalSemaphores;
 
-        vkResetFences(m_rDevice.device(), 1, &m_vInFlightFences[m_currentFrame]);
-        if (vkQueueSubmit(m_rDevice.graphics_queue(), 1, &submitInfo, m_vInFlightFences[m_currentFrame]) != VK_SUCCESS)
+        vkResetFences(m_rDevice.device(), 1, &m_vInFlightFences.at(m_currentFrame));
+        if (vkQueueSubmit(m_rDevice.graphics_queue(), 1, &submitInfo, m_vInFlightFences.at(m_currentFrame)) != VK_SUCCESS)
         {
             const char *pErrorMessage = "Failed to submit draw command buffer!";
             ksc_log::error(pErrorMessage);
@@ -126,6 +128,18 @@ namespace Rendering
         m_currentFrame = (m_currentFrame + 1) % MAX_FRAMES_IN_FLIGHT;
 
         return result;
+    }
+
+    void Swapchain::init()
+    {
+        ksc_log::debug("Creating swapchain.");
+
+        create_swapchain();
+        create_image_views();
+        create_render_pass();
+        create_depth_resources();
+        create_framebuffers();
+        create_sync_objects();
     }
 
     void Swapchain::create_swapchain()
@@ -176,7 +190,7 @@ namespace Rendering
         swapchainInfo.presentMode = presentMode;
         swapchainInfo.clipped = VK_TRUE;
 
-        swapchainInfo.oldSwapchain = VK_NULL_HANDLE;
+        swapchainInfo.oldSwapchain = pOldSwapchain ? pOldSwapchain->m_swapchain : VK_NULL_HANDLE;
 
         if (vkCreateSwapchainKHR(m_rDevice.device(), &swapchainInfo, nullptr, &m_swapchain) != VK_SUCCESS)
         {
@@ -198,11 +212,11 @@ namespace Rendering
     void Swapchain::create_image_views()
     {
         m_vSwapchainImageViews.resize(m_vSwapchainImages.size());
-        for (size_t i = 0; i < m_vSwapchainImages.size(); i++)
+        for (size_t i{}; i < m_vSwapchainImages.size(); i++)
         {
             VkImageViewCreateInfo viewInfo{};
             viewInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
-            viewInfo.image = m_vSwapchainImages[i];
+            viewInfo.image = m_vSwapchainImages.at(i);
             viewInfo.viewType = VK_IMAGE_VIEW_TYPE_2D;
             viewInfo.format = m_swapchainImageFormat;
             viewInfo.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
@@ -211,7 +225,7 @@ namespace Rendering
             viewInfo.subresourceRange.baseArrayLayer = 0;
             viewInfo.subresourceRange.layerCount = 1;
 
-            if (vkCreateImageView(m_rDevice.device(), &viewInfo, nullptr, &m_vSwapchainImageViews[i]) != VK_SUCCESS)
+            if (vkCreateImageView(m_rDevice.device(), &viewInfo, nullptr, &m_vSwapchainImageViews.at(i)) != VK_SUCCESS)
             {
                 const char *pErrorMessage = "Failed to create texture image view!";
                 ksc_log::error(pErrorMessage);
@@ -288,11 +302,11 @@ namespace Rendering
     void Swapchain::create_framebuffers()
     {
         m_vSwapchainFramebuffers.resize(image_count());
-        for (size_t i = 0; i < image_count(); i++)
+        for (size_t i{}; i < image_count(); i++)
         {
-            std::array<VkImageView, 2> attachments = { m_vSwapchainImageViews[i], m_vDepthImageViews[i] };
+            std::array<VkImageView, 2> attachments = { m_vSwapchainImageViews.at(i), m_vDepthImageViews.at(i) };
 
-            VkExtent2D swapChainExtent = get_swapchain_extent();
+            VkExtent2D swapChainExtent = get_extent();
             VkFramebufferCreateInfo framebufferInfo = {};
             framebufferInfo.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
             framebufferInfo.renderPass = m_renderPass;
@@ -302,7 +316,7 @@ namespace Rendering
             framebufferInfo.height = swapChainExtent.height;
             framebufferInfo.layers = 1;
 
-            if (vkCreateFramebuffer(m_rDevice.device(), &framebufferInfo, nullptr, &m_vSwapchainFramebuffers[i]) != VK_SUCCESS)
+            if (vkCreateFramebuffer(m_rDevice.device(), &framebufferInfo, nullptr, &m_vSwapchainFramebuffers.at(i)) != VK_SUCCESS)
             {
                 const char *pErrorMessage = "Failed to create framebuffer!";
                 ksc_log::error(pErrorMessage);
@@ -314,13 +328,13 @@ namespace Rendering
     void Swapchain::create_depth_resources()
     {
         VkFormat depthFormat = find_depth_format();
-        VkExtent2D swapChainExtent = get_swapchain_extent();
+        VkExtent2D swapChainExtent = get_extent();
 
         m_vDepthImages.resize(image_count());
         m_vDepthImageMemorys.resize(image_count());
         m_vDepthImageViews.resize(image_count());
 
-        for (int i = 0; i < m_vDepthImages.size(); i++)
+        for (size_t i{}; i < m_vDepthImages.size(); i++)
         {
             VkImageCreateInfo imageInfo{};
             imageInfo.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
@@ -338,11 +352,11 @@ namespace Rendering
             imageInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
             imageInfo.flags = 0;
 
-            m_rDevice.create_image_with_info(imageInfo, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, m_vDepthImages[i], m_vDepthImageMemorys[i]);
+            m_rDevice.create_image_with_info(imageInfo, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, m_vDepthImages.at(i), m_vDepthImageMemorys.at(i));
 
             VkImageViewCreateInfo viewInfo{};
             viewInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
-            viewInfo.image = m_vDepthImages[i];
+            viewInfo.image = m_vDepthImages.at(i);
             viewInfo.viewType = VK_IMAGE_VIEW_TYPE_2D;
             viewInfo.format = depthFormat;
             viewInfo.subresourceRange.aspectMask = VK_IMAGE_ASPECT_DEPTH_BIT;
@@ -351,7 +365,7 @@ namespace Rendering
             viewInfo.subresourceRange.baseArrayLayer = 0;
             viewInfo.subresourceRange.layerCount = 1;
 
-            if (vkCreateImageView(m_rDevice.device(), &viewInfo, nullptr, &m_vDepthImageViews[i]) != VK_SUCCESS)
+            if (vkCreateImageView(m_rDevice.device(), &viewInfo, nullptr, &m_vDepthImageViews.at(i)) != VK_SUCCESS)
             {
                 const char *pErrorMessage = "Failed to create texture image view!";
                 ksc_log::error(pErrorMessage);
@@ -374,9 +388,9 @@ namespace Rendering
         fenceInfo.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO;
         fenceInfo.flags = VK_FENCE_CREATE_SIGNALED_BIT;
 
-        for (size_t i = 0; i < image_count(); i++)
+        for (size_t i{}; i < image_count(); i++)
         {
-            if (vkCreateSemaphore(m_rDevice.device(), &semaphoreInfo, nullptr, &m_vRenderFinishedSemaphores[i]) != VK_SUCCESS)
+            if (vkCreateSemaphore(m_rDevice.device(), &semaphoreInfo, nullptr, &m_vRenderFinishedSemaphores.at(i)) != VK_SUCCESS)
             {
                 std::string errorMessage = std::format("Failed to create sync objects for frame {}!", m_currentFrame);
                 ksc_log::error(errorMessage);
@@ -384,10 +398,10 @@ namespace Rendering
             }
         }
 
-        for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++)
+        for (size_t i{}; i < MAX_FRAMES_IN_FLIGHT; i++)
         {
-            if (vkCreateSemaphore(m_rDevice.device(), &semaphoreInfo, nullptr, &m_vImageAvailableSemaphores[i]) != VK_SUCCESS ||
-                   vkCreateFence(m_rDevice.device(), &fenceInfo, nullptr, &m_vInFlightFences[i]) != VK_SUCCESS)
+            if (vkCreateSemaphore(m_rDevice.device(), &semaphoreInfo, nullptr, &m_vImageAvailableSemaphores.at(i)) != VK_SUCCESS ||
+                   vkCreateFence(m_rDevice.device(), &fenceInfo, nullptr, &m_vInFlightFences.at(i)) != VK_SUCCESS)
             {
                 std::string errorMessage = std::format("Failed to create sync objects for frame {}!", m_currentFrame);
                 ksc_log::error(errorMessage);
@@ -400,7 +414,7 @@ namespace Rendering
     {
         for (const auto &availableFormat : rAVAILABLE_FORMATS)
         {
-            if (availableFormat.format == VK_FORMAT_B8G8R8A8_UNORM && availableFormat.colorSpace == VK_COLOR_SPACE_SRGB_NONLINEAR_KHR)
+            if (availableFormat.format == VK_FORMAT_B8G8R8A8_SRGB && availableFormat.colorSpace == VK_COLOR_SPACE_SRGB_NONLINEAR_KHR)
             {
                 return availableFormat;
             }

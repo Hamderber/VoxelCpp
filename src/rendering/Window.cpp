@@ -9,7 +9,7 @@
 
 namespace Rendering
 {
-	Window::Window(int w, int h, const char *pNAME) : WIDTH{ w }, HEIGHT{ h }, m_pNAME{ pNAME }, m_pWindow{ nullptr }
+	Window::Window(int w, int h, const char *pNAME) : m_width{ w }, m_height{ h }, m_pNAME{ pNAME }, m_pWindow{ nullptr }
 	{
 		if (!glfwInit())
 		{
@@ -18,15 +18,17 @@ namespace Rendering
 		}
 
 		glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
-		// Temporarily non-resizable (NYI)
-		glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
+		glfwWindowHint(GLFW_RESIZABLE, GLFW_TRUE);
 
-		m_pWindow = glfwCreateWindow(WIDTH, HEIGHT, m_pNAME, nullptr, nullptr);
+		m_pWindow = glfwCreateWindow(m_width, m_height, m_pNAME, nullptr, nullptr);
 		if (!m_pWindow)
 		{
 			ksc_log::debug(std::format("glfwCreateWindow failed: {}", glfwGetError(nullptr)));
 			return;
 		}
+
+		glfwSetWindowUserPointer(m_pWindow, this);
+		glfwSetFramebufferSizeCallback(m_pWindow, framebuffer_resize_callback);
 
 		uint32_t extensionCount = 0;
 		vkEnumerateInstanceExtensionProperties(nullptr, &extensionCount, nullptr);
@@ -58,5 +60,13 @@ namespace Rendering
 			ksc_log::error(pErrorMessage);
 			throw std::runtime_error(pErrorMessage);
 		}
+	}
+
+	void Window::framebuffer_resize_callback(GLFWwindow *pGLFWwindow, int width, int height)
+	{
+		auto pWindow = reinterpret_cast<Window *>(glfwGetWindowUserPointer(pGLFWwindow));
+		pWindow->m_framebufferResized = true;
+		pWindow->m_width = width;
+		pWindow->m_height = height;
 	}
 }

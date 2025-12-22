@@ -29,27 +29,17 @@ namespace Rendering
 		vkDestroyPipeline(m_rDevice.device(), m_graphicsPipeline, nullptr);
 	}
 
-	void Pipeline::default_pipeline_config_info(PipelineConfigInfo &rConfigInfo, uint32_t width, uint32_t height)
+	void Pipeline::default_pipeline_config_info(PipelineConfigInfo &rConfigInfo)
 	{
 		rConfigInfo.inputAssemblyInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO;
 		rConfigInfo.inputAssemblyInfo.topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
 		rConfigInfo.inputAssemblyInfo.primitiveRestartEnable = VK_FALSE;
 
-		rConfigInfo.viewport.x = 0.0f;
-		rConfigInfo.viewport.y = 0.0f;
-		rConfigInfo.viewport.width = static_cast<float>(width);
-		rConfigInfo.viewport.height = static_cast<float>(height);
-		rConfigInfo.viewport.minDepth = 0.0f;
-		rConfigInfo.viewport.maxDepth = 1.0f;
-
-		rConfigInfo.scissor.offset = { 0, 0 };
-		rConfigInfo.scissor.extent = { width, height };
-
 		rConfigInfo.viewportInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO;
 		rConfigInfo.viewportInfo.viewportCount = 1;
-		rConfigInfo.viewportInfo.pViewports = &rConfigInfo.viewport;
+		rConfigInfo.viewportInfo.pViewports = nullptr;
 		rConfigInfo.viewportInfo.scissorCount = 1;
-		rConfigInfo.viewportInfo.pScissors = &rConfigInfo.scissor;
+		rConfigInfo.viewportInfo.pScissors = nullptr;
 
 		rConfigInfo.rasterizationInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO;
 		rConfigInfo.rasterizationInfo.depthClampEnable = VK_FALSE;
@@ -111,6 +101,12 @@ namespace Rendering
 		rConfigInfo.depthStencilInfo.maxDepthBounds = 1.0f;
 		rConfigInfo.depthStencilInfo.front = {};
 		rConfigInfo.depthStencilInfo.back = {};
+
+		rConfigInfo.vDynamicStateEnables = { VK_DYNAMIC_STATE_VIEWPORT, VK_DYNAMIC_STATE_SCISSOR };
+		rConfigInfo.dynamicStateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_DYNAMIC_STATE_CREATE_INFO;
+		rConfigInfo.dynamicStateInfo.pDynamicStates = rConfigInfo.vDynamicStateEnables.data();
+		rConfigInfo.dynamicStateInfo.dynamicStateCount = static_cast<uint32_t>(rConfigInfo.vDynamicStateEnables.size());
+		rConfigInfo.dynamicStateInfo.flags = 0;
 	}
 
 	void Pipeline::bind(VkCommandBuffer commandBuffer) const
@@ -202,8 +198,7 @@ namespace Rendering
 		pipelineInfo.pMultisampleState = &rCONFIG_INFO.multisampleInfo;
 		pipelineInfo.pColorBlendState = &rCONFIG_INFO.colorBlendInfo;
 		pipelineInfo.pDepthStencilState = &rCONFIG_INFO.depthStencilInfo;
-		// Optional
-		pipelineInfo.pDynamicState = nullptr;
+		pipelineInfo.pDynamicState = &rCONFIG_INFO.dynamicStateInfo;
 
 		pipelineInfo.layout = rCONFIG_INFO.pipelineLayout;
 		pipelineInfo.renderPass = rCONFIG_INFO.renderPass;

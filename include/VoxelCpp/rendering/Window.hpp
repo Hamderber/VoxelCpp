@@ -17,13 +17,19 @@ namespace Rendering
 
 		bool poll_or_exit();
 		void create_surface(VkInstance instance, VkSurfaceKHR *pSurface);
-		VkExtent2D get_extent() { return { static_cast<uint32_t>(WIDTH), static_cast<uint32_t>(HEIGHT) }; };
-
-		const int WIDTH;
-		const int HEIGHT;
+		VkExtent2D get_extent() { return { static_cast<uint32_t>(m_width), static_cast<uint32_t>(m_height) }; }
+		bool flag_get_was_window_resized() const { return m_framebufferResized; }
+		void flag_reset_was_window_resized() { m_framebufferResized = false; }
 
 	private:
+		static void framebuffer_resize_callback(GLFWwindow *pGLFWwindow, int width, int height);
+
+		int m_width;
+		int m_height;
 		const char *m_pNAME;
 		GLFWwindow *m_pWindow;
+
+		// Flags
+		bool m_framebufferResized = false;
 	};
 }

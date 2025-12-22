@@ -2,6 +2,7 @@
 #include <vulkan/vulkan_core.h>
 #include <vector>
 #include <cstdint>
+#include <memory>
 
 namespace Rendering { class Device; };
 
@@ -10,20 +11,21 @@ namespace Rendering
     class Swapchain
     {
     public:
-        static constexpr int MAX_FRAMES_IN_FLIGHT = 2;
+        static constexpr size_t MAX_FRAMES_IN_FLIGHT = 2;
 
         Swapchain(Device &rDevice, VkExtent2D windowExtent);
+        Swapchain(Device &rDevice, VkExtent2D windowExtent, std::shared_ptr<Swapchain> pPrevious);
         ~Swapchain();
 
         Swapchain(const Swapchain &) = delete;
-        void operator=(const Swapchain &) = delete;
+        Swapchain operator=(const Swapchain &) = delete;
 
         VkFramebuffer get_framebuffer(int index) { return m_vSwapchainFramebuffers[index]; }
         VkRenderPass get_render_pass() const { return m_renderPass; }
         VkImageView get_image_view(int index) { return m_vSwapchainImageViews[index]; }
         size_t image_count() { return m_vSwapchainImages.size(); }
         VkFormat get_swapchain_image_format() const { return m_swapchainImageFormat; }
-        VkExtent2D get_swapchain_extent() const { return m_swapchainExtent; }
+        VkExtent2D get_extent() const { return m_swapchainExtent; }
         uint32_t width() const { return m_swapchainExtent.width; }
         uint32_t height() const { return m_swapchainExtent.height; }
 
@@ -38,6 +40,7 @@ namespace Rendering
         VkResult submit_command_buffer(const VkCommandBuffer *pBUFFER, uint32_t *pImageIndex);
 
     private:
+        void init();
         void create_swapchain();
         void create_image_views();
         void create_depth_resources();
@@ -65,6 +68,7 @@ namespace Rendering
         VkExtent2D m_windowExtent;
 
         VkSwapchainKHR m_swapchain;
+        std::shared_ptr<Swapchain> pOldSwapchain;
 
         std::vector<VkSemaphore> m_vImageAvailableSemaphores;
         std::vector<VkSemaphore> m_vRenderFinishedSemaphores;

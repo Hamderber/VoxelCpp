@@ -5,6 +5,7 @@
 #include <cassert>
 #include <cstdint>
 #include <cstring>
+#include <cstddef>
 
 namespace Rendering
 {
@@ -27,7 +28,7 @@ namespace Rendering
 		vkCmdBindVertexBuffers(commandBuffer, 0, BUFFER_COUNT, pBuffers, pOffsets);
 	}
 
-	void Model::draw(VkCommandBuffer commandBuffer)
+	void Model::draw(VkCommandBuffer commandBuffer) const
 	{
 		vkCmdDraw(commandBuffer, m_vertexCount, 1, 0, 0);
 	}
@@ -61,11 +62,16 @@ namespace Rendering
 
 	std::vector<VkVertexInputAttributeDescription> Model::Vertex::get_attribute_descriptions()
 	{
-		std::vector<VkVertexInputAttributeDescription> vAttributeDescriptions(1);
+		std::vector<VkVertexInputAttributeDescription> vAttributeDescriptions(2);
 		vAttributeDescriptions[0].binding = 0;
 		vAttributeDescriptions[0].location = 0;
 		vAttributeDescriptions[0].format = VK_FORMAT_R32G32_SFLOAT;
-		vAttributeDescriptions[0].offset = 0;
+		vAttributeDescriptions[0].offset = offsetof(Vertex, position);
+
+		vAttributeDescriptions[1].binding = 0;
+		vAttributeDescriptions[1].location = 1;
+		vAttributeDescriptions[1].format = VK_FORMAT_R32G32B32_SFLOAT;
+		vAttributeDescriptions[1].offset = offsetof(Vertex, color);
 
 		return vAttributeDescriptions;
 	}

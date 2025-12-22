@@ -7,6 +7,7 @@
 #include <memory>
 #include <vulkan/vulkan_core.h>
 #include <vector>
+#include <cstdint>
 
 namespace App { class App; }
 
@@ -31,13 +32,16 @@ namespace Rendering
 		void create_pipeline_layout();
 		void create_pipeline();
 		void create_command_buffers();
+		void destroy_command_buffers();
 		void draw_frame();
+		void recreate_swapchain();
+		void record_command_buffer(uint32_t imageIndex);
 
 		App::App &m_rApp;
 		Device m_device;
-		Swapchain m_swapchain;
+		std::unique_ptr<Swapchain> m_pSwapchain;
 		std::unique_ptr<Pipeline> m_pPipeline;
-		VkPipelineLayout m_pipelineLayout;
+		VkPipelineLayout m_pPipelineLayout;
 		std::vector<VkCommandBuffer> m_vCommandBuffers;
 		std::unique_ptr<Model> m_pModel;
 	};

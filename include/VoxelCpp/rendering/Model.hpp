@@ -18,6 +18,7 @@ namespace Rendering
 		struct Vertex
 		{
 			glm::vec2 position;
+			glm::vec3 color;
 
 			static std::vector<VkVertexInputBindingDescription> get_binding_descriptions();
 			static std::vector<VkVertexInputAttributeDescription> get_attribute_descriptions();
@@ -30,7 +31,7 @@ namespace Rendering
 		Model &operator=(const Model &) = delete;
 
 		void bind(VkCommandBuffer commandBuffer);
-		void draw(VkCommandBuffer commandBuffer);
+		void draw(VkCommandBuffer commandBuffer) const;
 
 	private:
 		void create_vertex_buffers(const std::vector<Vertex> &rVERTICIES);
