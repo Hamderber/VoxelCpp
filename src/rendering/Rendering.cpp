@@ -17,6 +17,9 @@
 #include <GLFW/glfw3.h>
 #include <utility>
 #include <cassert>
+#include <VoxelCpp/game/GameObject.hpp>
+#include <glm/gtc/constants.inl>
+#include <glm/detail/func_common.inl>
 
 namespace Rendering
 {
@@ -24,7 +27,7 @@ namespace Rendering
 		window{ Window(DEFAULT_WINDOW_WIDTH, DEFAULT_WINDOW_HEIGHT, APPLICATION_NAME) },
 		m_device{ window }
 	{
-		load_models();
+		load_game_objects();
 		create_pipeline_layout();
 		recreate_swapchain();
 		create_command_buffers();
@@ -46,7 +49,7 @@ namespace Rendering
 		draw_frame();
 	}
 
-	void Rendering::load_models()
+	void Rendering::load_game_objects()
 	{
 		// Hello world triangle (model version)
 		std::vector<Model::Vertex> vVerticies {
@@ -55,7 +58,16 @@ namespace Rendering
 			{{ -0.5f, 0.5f }, {0, 0, 1.0f}}
 		};
 
-		m_pModel = std::make_unique<Model>(m_device, vVerticies);
+		auto pModel = std::make_shared<Model>(m_device, vVerticies);
+
+		auto triangleGO = Game::GameObject::create();
+		triangleGO.pModel = pModel;
+		triangleGO.color = { 0.1f, 0.8f, 0.1f };
+		triangleGO.transform2D.translation.x = 0.2f;
+		triangleGO.transform2D.scale = { 2, 0.5f };
+		triangleGO.transform2D.rotationRadians = 0.25f * glm::two_pi<float>();
+
+		m_vGameObjects.push_back(std::move(triangleGO));
 	}
 
 	void Rendering::wait_idle()
@@ -70,12 +82,17 @@ namespace Rendering
 
 	void Rendering::create_pipeline_layout()
 	{
+		VkPushConstantRange pushConstantRange{};
+		pushConstantRange.stageFlags = VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT;
+		pushConstantRange.offset = 0;
+		pushConstantRange.size = sizeof(SimplePushConstantData);
+
 		VkPipelineLayoutCreateInfo layoutInfo{};
 		layoutInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
 		layoutInfo.setLayoutCount = 0;
 		layoutInfo.pSetLayouts = nullptr;
-		layoutInfo.pushConstantRangeCount = 0;
-		layoutInfo.pPushConstantRanges = nullptr;
+		layoutInfo.pushConstantRangeCount = 1;
+		layoutInfo.pPushConstantRanges = &pushConstantRange;
 
 		if (vkCreatePipelineLayout(m_device.device(), &layoutInfo, nullptr, &m_pPipelineLayout) != VK_SUCCESS)
 		{
@@ -234,9 +251,7 @@ namespace Rendering
 		vkCmdSetViewport(m_vCommandBuffers[imageIndex], 0, 1, &viewport);
 		vkCmdSetScissor(m_vCommandBuffers[imageIndex], 0, 1, &scissor);
 
-		m_pPipeline->bind(m_vCommandBuffers[imageIndex]);
-		m_pModel.get()->bind(m_vCommandBuffers[imageIndex]);
-		m_pModel.get()->draw(m_vCommandBuffers[imageIndex]);
+		render_game_objects(m_vCommandBuffers[imageIndex]);
 
 		vkCmdEndRenderPass(m_vCommandBuffers[imageIndex]);
 		if (vkEndCommandBuffer(m_vCommandBuffers[imageIndex]) != VK_SUCCESS)
@@ -244,6 +259,28 @@ namespace Rendering
 			std::string errorMessage = std::format("Failed to record command buffer {}/{}!", imageIndex, COMMAND_BUFFER_COUNT);
 			ksc_log::error(errorMessage);
 			throw std::runtime_error(errorMessage);
+		}
+	}
+
+	void Rendering::render_game_objects(VkCommandBuffer commandBuffer)
+	{
+		m_pPipeline->bind(commandBuffer);
+
+		for (auto &go : m_vGameObjects)
+		{
+			// TODO: something like time.deltaTime
+			go.transform2D.rotationRadians = glm::mod(go.transform2D.rotationRadians + 0.1f, glm::two_pi<float>());
+
+			SimplePushConstantData push{};
+			push.offset = go.transform2D.translation;
+			push.color = go.color;
+			push.transform = go.transform2D.matrix();
+
+			vkCmdPushConstants((commandBuffer), m_pPipelineLayout, VK_SHADER_STAGE_FRAGMENT_BIT | VK_SHADER_STAGE_VERTEX_BIT,
+							   0, static_cast<uint32_t>(sizeof(SimplePushConstantData)), &push);
+		
+			go.pModel->bind(commandBuffer);
+			go.pModel->draw(commandBuffer);
 		}
 	}
 }
