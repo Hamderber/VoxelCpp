@@ -18,8 +18,7 @@
 #include <utility>
 #include <cassert>
 #include <VoxelCpp/game/GameObject.hpp>
-#include <glm/gtc/constants.inl>
-#include <glm/detail/func_common.inl>
+#include <glm/gtc/constants.hpp>
 
 namespace Rendering
 {
@@ -65,7 +64,7 @@ namespace Rendering
 		triangleGO.color = { 0.1f, 0.8f, 0.1f };
 		triangleGO.transform2D.translation.x = 0.2f;
 		triangleGO.transform2D.scale = { 2, 0.5f };
-		triangleGO.transform2D.rotationRadians = 0.25f * glm::two_pi<float>();
+		triangleGO.transform2D.rotationRadians = 0.0025f * glm::two_pi<float>();
 
 		m_vGameObjects.push_back(std::move(triangleGO));
 	}
@@ -269,7 +268,7 @@ namespace Rendering
 		for (auto &go : m_vGameObjects)
 		{
 			// TODO: something like time.deltaTime
-			go.transform2D.rotationRadians = glm::mod(go.transform2D.rotationRadians + 0.1f, glm::two_pi<float>());
+			go.transform2D.rotationRadians = glm::mod(go.transform2D.rotationRadians + 0.0001f, glm::two_pi<float>());
 
 			SimplePushConstantData push{};
 			push.offset = go.transform2D.translation;

@@ -9,7 +9,7 @@ namespace Rendering
 {
 	struct SwapchainSupportDetails
 	{
-		VkSurfaceCapabilitiesKHR capabilities;
+		VkSurfaceCapabilitiesKHR capabilities{};
 		std::vector<VkSurfaceFormatKHR> vFormats;
 		std::vector<VkPresentModeKHR> vPresentModes;
 	};
