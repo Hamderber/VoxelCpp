@@ -20,24 +20,29 @@ namespace Rendering
         Swapchain(const Swapchain &) = delete;
         Swapchain operator=(const Swapchain &) = delete;
 
-        VkFramebuffer get_framebuffer(int index) { return m_vSwapchainFramebuffers[index]; }
+        VkFramebuffer get_framebuffer(int index) { return m_vFramebuffers[index]; }
         VkRenderPass get_render_pass() const { return m_renderPass; }
-        VkImageView get_image_view(int index) { return m_vSwapchainImageViews[index]; }
-        size_t image_count() { return m_vSwapchainImages.size(); }
-        VkFormat get_swapchain_image_format() const { return m_swapchainImageFormat; }
-        VkExtent2D get_extent() const { return m_swapchainExtent; }
-        uint32_t width() const { return m_swapchainExtent.width; }
-        uint32_t height() const { return m_swapchainExtent.height; }
+        VkImageView get_image_view(int index) { return m_vImageViews[index]; }
+        size_t image_count() { return m_vImages.size(); }
+        VkFormat get_swapchain_image_format() const { return m_imageFormat; }
+        VkExtent2D get_extent() const { return m_extent; }
+        uint32_t width() const { return m_extent.width; }
+        uint32_t height() const { return m_extent.height; }
 
         float extent_aspect_ratio() const
         {
-            return static_cast<float>(m_swapchainExtent.width) / static_cast<float>(m_swapchainExtent.height);
+            return static_cast<float>(m_extent.width) / static_cast<float>(m_extent.height);
         }
 
         VkFormat find_depth_format();
 
         VkResult acquire_next_image(uint32_t *pImageIndex);
         VkResult submit_command_buffer(const VkCommandBuffer *pBUFFER, uint32_t *pImageIndex);
+
+        bool compare_swap_formats(const Swapchain &rSWAPCHAIN) const
+        {
+            return rSWAPCHAIN.m_depthFormat == m_depthFormat && rSWAPCHAIN.m_imageFormat == m_imageFormat;
+        }
 
     private:
         void init();
@@ -52,17 +57,18 @@ namespace Rendering
         VkPresentModeKHR choose_swapchain_present_mode(const std::vector<VkPresentModeKHR> &rAVAILABLE_PRESENT_MODES);
         VkExtent2D choose_swapchain_extent(const VkSurfaceCapabilitiesKHR &rCAPABILITIES) const;
 
-        VkFormat m_swapchainImageFormat;
-        VkExtent2D m_swapchainExtent;
+        VkFormat m_imageFormat;
+        VkFormat m_depthFormat;
+        VkExtent2D m_extent;
 
-        std::vector<VkFramebuffer> m_vSwapchainFramebuffers;
+        std::vector<VkFramebuffer> m_vFramebuffers;
         VkRenderPass m_renderPass;
 
         std::vector<VkImage> m_vDepthImages;
         std::vector<VkDeviceMemory> m_vDepthImageMemorys;
         std::vector<VkImageView> m_vDepthImageViews;
-        std::vector<VkImage> m_vSwapchainImages;
-        std::vector<VkImageView> m_vSwapchainImageViews;
+        std::vector<VkImage> m_vImages;
+        std::vector<VkImageView> m_vImageViews;
 
         Device &m_rDevice;
         VkExtent2D m_windowExtent;

@@ -16,12 +16,14 @@ namespace Rendering
 {
     Swapchain::Swapchain(Device &rDevice, VkExtent2D extent) : m_rDevice{ rDevice }, m_windowExtent{ extent }
     {
+        ksc_log::debug("Creating Swapchain...");
         init();
     }
 
     Swapchain::Swapchain(Device &rDevice, VkExtent2D extent, std::shared_ptr<Swapchain> pPrevious) :
         m_rDevice{ rDevice }, m_windowExtent{ extent }, pOldSwapchain{ pPrevious }
     {
+        ksc_log::debug("Creating Swapchain...");
         init();
 
         pOldSwapchain = nullptr;
@@ -29,11 +31,12 @@ namespace Rendering
 
     Swapchain::~Swapchain()
     {
-        for (auto imageView : m_vSwapchainImageViews)
+        ksc_log::debug("Destroying Swapchain...");
+        for (auto imageView : m_vImageViews)
         {
             vkDestroyImageView(m_rDevice.device(), imageView, nullptr);
         }
-        m_vSwapchainImageViews.clear();
+        m_vImageViews.clear();
 
         if (m_swapchain != nullptr)
         {
@@ -48,7 +51,7 @@ namespace Rendering
             vkFreeMemory(m_rDevice.device(), m_vDepthImageMemorys.at(i), nullptr);
         }
 
-        for (auto framebuffer : m_vSwapchainFramebuffers)
+        for (auto framebuffer : m_vFramebuffers)
         {
             vkDestroyFramebuffer(m_rDevice.device(), framebuffer, nullptr);
         }
@@ -132,8 +135,6 @@ namespace Rendering
 
     void Swapchain::init()
     {
-        ksc_log::debug("Creating swapchain.");
-
         create_swapchain();
         create_image_views();
         create_render_pass();
@@ -202,30 +203,30 @@ namespace Rendering
         // images with vkGetSwapchainImagesKHR, then resize the container and finally call it again to
         // retrieve the handles.
         vkGetSwapchainImagesKHR(m_rDevice.device(), m_swapchain, &imageCount, nullptr);
-        m_vSwapchainImages.resize(imageCount);
-        vkGetSwapchainImagesKHR(m_rDevice.device(), m_swapchain, &imageCount, m_vSwapchainImages.data());
+        m_vImages.resize(imageCount);
+        vkGetSwapchainImagesKHR(m_rDevice.device(), m_swapchain, &imageCount, m_vImages.data());
 
-        m_swapchainImageFormat = surfaceFormat.format;
-        m_swapchainExtent = extent;
+        m_imageFormat = surfaceFormat.format;
+        m_extent = extent;
     }
 
     void Swapchain::create_image_views()
     {
-        m_vSwapchainImageViews.resize(m_vSwapchainImages.size());
-        for (size_t i{}; i < m_vSwapchainImages.size(); i++)
+        m_vImageViews.resize(m_vImages.size());
+        for (size_t i{}; i < m_vImages.size(); i++)
         {
             VkImageViewCreateInfo viewInfo{};
             viewInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
-            viewInfo.image = m_vSwapchainImages.at(i);
+            viewInfo.image = m_vImages.at(i);
             viewInfo.viewType = VK_IMAGE_VIEW_TYPE_2D;
-            viewInfo.format = m_swapchainImageFormat;
+            viewInfo.format = m_imageFormat;
             viewInfo.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
             viewInfo.subresourceRange.baseMipLevel = 0;
             viewInfo.subresourceRange.levelCount = 1;
             viewInfo.subresourceRange.baseArrayLayer = 0;
             viewInfo.subresourceRange.layerCount = 1;
 
-            if (vkCreateImageView(m_rDevice.device(), &viewInfo, nullptr, &m_vSwapchainImageViews.at(i)) != VK_SUCCESS)
+            if (vkCreateImageView(m_rDevice.device(), &viewInfo, nullptr, &m_vImageViews.at(i)) != VK_SUCCESS)
             {
                 const char *pErrorMessage = "Failed to create texture image view!";
                 ksc_log::error(pErrorMessage);
@@ -301,10 +302,10 @@ namespace Rendering
 
     void Swapchain::create_framebuffers()
     {
-        m_vSwapchainFramebuffers.resize(image_count());
+        m_vFramebuffers.resize(image_count());
         for (size_t i{}; i < image_count(); i++)
         {
-            std::array<VkImageView, 2> attachments = { m_vSwapchainImageViews.at(i), m_vDepthImageViews.at(i) };
+            std::array<VkImageView, 2> attachments = { m_vImageViews.at(i), m_vDepthImageViews.at(i) };
 
             VkExtent2D swapChainExtent = get_extent();
             VkFramebufferCreateInfo framebufferInfo = {};
@@ -316,7 +317,7 @@ namespace Rendering
             framebufferInfo.height = swapChainExtent.height;
             framebufferInfo.layers = 1;
 
-            if (vkCreateFramebuffer(m_rDevice.device(), &framebufferInfo, nullptr, &m_vSwapchainFramebuffers.at(i)) != VK_SUCCESS)
+            if (vkCreateFramebuffer(m_rDevice.device(), &framebufferInfo, nullptr, &m_vFramebuffers.at(i)) != VK_SUCCESS)
             {
                 const char *pErrorMessage = "Failed to create framebuffer!";
                 ksc_log::error(pErrorMessage);
@@ -328,6 +329,7 @@ namespace Rendering
     void Swapchain::create_depth_resources()
     {
         VkFormat depthFormat = find_depth_format();
+        m_depthFormat = depthFormat;
         VkExtent2D swapChainExtent = get_extent();
 
         m_vDepthImages.resize(image_count());

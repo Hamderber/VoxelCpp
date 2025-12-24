@@ -16,13 +16,13 @@ namespace Rendering
 	Pipeline::Pipeline(Device &rDevice, const std::string &rVERT_PATH, const std::string &rFRAG_PATH,
 					   const PipelineConfigInfo &rCONFIG_INFO) : m_rDevice{ rDevice }
 	{
-		ksc_log::debug("Creating pipeline.");
+		ksc_log::debug("Creating Pipeline...");
 		create_graphics_pipeline(rVERT_PATH, rFRAG_PATH, rCONFIG_INFO);
 	}
 
 	Pipeline::~Pipeline()
 	{
-		ksc_log::debug("Destroying pipeline.");
+		ksc_log::debug("Destroying Pipeline...");
 		
 		vkDestroyShaderModule(m_rDevice.device(), m_vertShaderModule, nullptr);
 		vkDestroyShaderModule(m_rDevice.device(), m_fragShaderModule, nullptr);

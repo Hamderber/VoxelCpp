@@ -1,52 +1,74 @@
-#include <VoxelCpp/app/ProgramConstants.hpp>
 #include <filesystem>
 #include <VoxelCpp/app/App.hpp>
 #include <ksc_log.hpp>
-#include <VoxelCpp/rendering/Rendering.hpp>
+#include <VoxelCpp/rendering/Renderer.hpp>
 #include <VoxelCpp/rendering/Window.hpp>
 #include <memory>
+#include <glm/gtc/constants.hpp>
+#include <cassert>
+#include <VoxelCpp/game/GameObject.hpp>
+#include <VoxelCpp/rendering/Model.hpp>
+#include <VoxelCpp/rendering/Pipeline.hpp>
+#include <cstdint>
+#include <stdexcept>
+#include <utility>
+#include <vector>
+#include <glm/gtc/constants.hpp>
+#include <vulkan/vulkan_core.h>
+#include <VoxelCpp/rendering/RenderSystem.hpp>
 
 namespace App
 {
-	App::App()
+	App::App(std::filesystem::path root) : m_root{root}
 	{
-		m_root = std::filesystem::current_path() / ".." / ".." / "..";
+		game_objects_load();
 
-		start_logging();
 		ksc_log::debug("App created. Root: " + m_root.generic_string());
-
-		rendering = std::make_unique<Rendering::Rendering>(*this);
 	}
 
 	App::~App()
 	{
 		ksc_log::debug("Destroying app...");
-		ksc_log::end();
 	}
 
-	void App::start_logging()
+	void App::game_objects_load()
 	{
-		const bool USE_TIMESTAMP = true;
-		ksc_log::begin(APPLICATION_NAME, m_root, USE_TIMESTAMP, ksc_log::Level::Debug);
+		// Hello world triangle (model version)
+		std::vector<Rendering::Model::Vertex> vVerticies{
+			{{ 0.0f, -0.5f }, {1.0f, 0, 0}},
+			{{ 0.5f, 0.5f }, {0, 1.0f, 0}},
+			{{ -0.5f, 0.5f }, {0, 0, 1.0f}}
+		};
+
+		auto pModel = std::make_shared<Rendering::Model>(m_device, vVerticies);
+
+		auto triangleGO = Game::GameObject::create();
+		triangleGO.pModel = pModel;
+		triangleGO.color = { 0.1f, 0.8f, 0.1f };
+		triangleGO.transform2D.translation.x = 0.2f;
+		triangleGO.transform2D.scale = { 2, 0.5f };
+		triangleGO.transform2D.rotationRadians = 0.0025f * glm::two_pi<float>();
+
+		m_vGameObjects.push_back(std::move(triangleGO));
 	}
 
-	void App::loop(void) const
+	void App::loop(void)
 	{
-		// Breaks when the glfw window should close
-		do
+		Rendering::RenderSystem renderSystem{ m_device, m_renderer.swapchain_renderpass_get() };
+
+		while (!m_window.should_close())
 		{
-			// App happens here.
-			//ksc_log::debug("App loop");
+			glfwPollEvents();
 
-			rendering->loop();
-		} while (!rendering->window.poll_or_exit());
-		
-		// Put this somewhere else maybe?
-		// device wait idle on exit. like a rendering cleanup func?
-	}
+			if (auto commandBuffer = m_renderer.frame_begin())
+			{
+				m_renderer.swapchain_renderpass_begin(commandBuffer);
+				renderSystem.game_objects_render(commandBuffer, m_vGameObjects);
+				m_renderer.swapchain_renderpass_end(commandBuffer);
+				m_renderer.frame_end();
+			}
+		}
 
-	std::filesystem::path App::get_root()
-	{
-		return m_root;
+		m_renderer.wait_idle();
 	}
 }
