@@ -95,6 +95,7 @@ namespace Rendering
 		}
 
 		m_isFrameStarted = false;
+		m_currentFrameIndex = (m_currentFrameIndex + 1) % Swapchain::MAX_FRAMES_IN_FLIGHT;
 	}
 
 	void Renderer::swapchain_renderpass_begin(VkCommandBuffer commandBuffer)
@@ -156,7 +157,7 @@ namespace Rendering
 
 	void Renderer::command_buffers_create()
 	{
-		m_vCommandBuffers.resize(m_pSwapchain->image_count());
+		m_vCommandBuffers.resize(Swapchain::MAX_FRAMES_IN_FLIGHT);
 
 		VkCommandBufferAllocateInfo allocateInfo{};
 		allocateInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
@@ -197,20 +198,14 @@ namespace Rendering
 		else
 		{
 			std::shared_ptr<Swapchain> pOldSwapchain = std::move(m_pSwapchain);
+			m_pSwapchain = std::make_unique<Swapchain>(m_rDevice, m_rWindow.get_extent(), pOldSwapchain);
 
 			if (!pOldSwapchain->compare_swap_formats(*m_pSwapchain.get()))
 			{
 				// TODO: Actually deal with this
-				const char *pErrorMessage = "Swapchain image format has changed!";
+				const char *pErrorMessage = "Swapchain image or depth format has changed!";
 				ksc_log::error(pErrorMessage);
 				throw std::runtime_error(pErrorMessage);
-			}
-
-			m_pSwapchain = std::make_unique<Swapchain>(m_rDevice, m_rWindow.get_extent(), pOldSwapchain);
-			if (m_pSwapchain->image_count() != m_vCommandBuffers.size())
-			{
-				command_buffers_destroy();
-				command_buffers_create();
 			}
 		}
 	}

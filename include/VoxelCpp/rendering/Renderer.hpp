@@ -36,10 +36,16 @@ namespace Rendering
 		VkCommandBuffer command_buffer_get_current() const
 		{ 
 			assert(m_isFrameStarted && "Can't get the current command buffer when a frame isn't in progress.");
-			return m_vCommandBuffers[m_currentImageIndex];
+			return m_vCommandBuffers[m_currentFrameIndex];
 		}
 
 		VkRenderPass swapchain_renderpass_get() const { return m_pSwapchain->get_render_pass(); }
+
+		int frame_index_get() const
+		{
+			assert(m_isFrameStarted && "Can't get the current frame index when a frame isn't in progress.");
+			return m_currentFrameIndex;
+		}
 
 		VkCommandBuffer frame_begin();
 		void frame_end();
@@ -58,6 +64,7 @@ namespace Rendering
 		std::unique_ptr<Swapchain> m_pSwapchain;
 		std::vector<VkCommandBuffer> m_vCommandBuffers;
 		uint32_t m_currentImageIndex = 0;
+		size_t m_currentFrameIndex = 0;
 		bool m_isFrameStarted = false;
 	};
 }
