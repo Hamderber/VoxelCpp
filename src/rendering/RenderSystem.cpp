@@ -10,6 +10,7 @@
 #include <vulkan/vulkan_core.h>
 #include <memory>
 #include <glm/gtc/constants.hpp>
+#include <cstdint>
 
 namespace Rendering
 {
@@ -33,12 +34,13 @@ namespace Rendering
 		for (auto &go : vGameObjects)
 		{
 			// TODO: something like time.deltaTime
-			go.transform2D.rotationRadians = glm::mod(go.transform2D.rotationRadians + 0.0001f, glm::two_pi<float>());
+			go.transform.eulerRotationRadians.x = glm::mod(go.transform.eulerRotationRadians.x + 0.00005f, glm::two_pi<float>());
+			go.transform.eulerRotationRadians.y = glm::mod(go.transform.eulerRotationRadians.y + 0.0001f, glm::two_pi<float>());
+			go.transform.eulerRotationRadians.z = glm::mod(go.transform.eulerRotationRadians.z + 0.0002f, glm::two_pi<float>());
 
 			Rendering::SimplePushConstantData push{};
-			push.offset = go.transform2D.translation;
 			push.color = go.color;
-			push.transform = go.transform2D.matrix();
+			push.transform = go.transform.matrix();
 
 			vkCmdPushConstants((commandBuffer), m_pipelineLayout, VK_SHADER_STAGE_FRAGMENT_BIT | VK_SHADER_STAGE_VERTEX_BIT,
 							   0, static_cast<uint32_t>(sizeof(Rendering::SimplePushConstantData)), &push);

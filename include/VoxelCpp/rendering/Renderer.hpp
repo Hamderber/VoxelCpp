@@ -14,14 +14,6 @@
 
 namespace Rendering
 {
-	// TEMPORARY
-	struct SimplePushConstantData
-	{
-		glm::mat2 transform{ 1 };
-		glm::vec2 offset;
-		alignas(16) glm::vec3 color;
-	};
-
 	class Renderer
 	{
 	public:

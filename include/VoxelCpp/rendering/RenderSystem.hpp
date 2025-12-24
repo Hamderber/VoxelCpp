@@ -2,12 +2,20 @@
 #include <vulkan/vulkan_core.h>
 #include <vector>
 #include <memory>
+#include <glm/fwd.hpp>
 
 namespace Game { class GameObject; }
 namespace Rendering { class Device; class Pipeline; }
 
 namespace Rendering
 {
+	// TEMPORARY
+	struct SimplePushConstantData
+	{
+		glm::mat4 transform{ 1.0f };
+		alignas(16) glm::vec3 color;
+	};
+
 	class RenderSystem
 	{
 	public:

@@ -2,6 +2,7 @@
 
 #include <glm/glm.hpp>
 #include <glm/fwd.hpp>
+#include <glm/gtc/matrix_transform.hpp>
 #include <cmath>
 
 namespace Physics
@@ -10,23 +11,47 @@ namespace Physics
 		Don't forget that vulkan's positive y axis points down
 	*/
 
-	struct Transform2D
+	// TODO: Bake these values on member changes to avoid recalculating them per frame
+	struct Transform
 	{
-		glm::vec2 translation{};
-		glm::vec2 scale{1,1};
-		float rotationRadians = 0;
+		glm::vec3 translation{};
+		glm::vec3 scale{1.0f, 1.0f, 1.0f};
+		glm::vec3 eulerRotationRadians{};
 
-		// TODO: Bake these values on member changes to avoid recalculating them per frame
-		glm::mat2 matrix() const
-		{
-			const float SIN = glm::sin(rotationRadians);
-			const float COS = glm::cos(rotationRadians);
-
-			glm::mat2 rotatedMat{{ COS, SIN }, { -SIN, COS }};
-			glm::mat2 scaledMat{{ scale.x, 0 }, { 0, scale.y }};
-			
-			return rotatedMat * scaledMat;
-		};
+		/// <summary>
+		/// Order: Translate * Ry * Rx * Rz * scale. Tait-Bryan Euler Angles order Y(1) X(2) Z(3). Optimized to directly apply to
+        /// the applicable mat4 members.
+		/// </summary>
+		/// <returns>glm::mat4 transformation matrix</returns>
+        glm::mat4 matrix() const
+        {
+            const float c3 = glm::cos(eulerRotationRadians.z);
+            const float s3 = glm::sin(eulerRotationRadians.z);
+            const float c2 = glm::cos(eulerRotationRadians.x);
+            const float s2 = glm::sin(eulerRotationRadians.x);
+            const float c1 = glm::cos(eulerRotationRadians.y);
+            const float s1 = glm::sin(eulerRotationRadians.y);
+            return glm::mat4{
+                {
+                    scale.x * (c1 * c3 + s1 * s2 * s3),
+                    scale.x * (c2 * s3),
+                    scale.x * (c1 * s2 * s3 - c3 * s1),
+                    0.0f,
+                },
+                {
+                    scale.y * (c3 * s1 * s2 - c1 * s3),
+                    scale.y * (c2 * c3),
+                    scale.y * (c1 * c3 * s2 + s1 * s3),
+                    0.0f,
+                },
+                {
+                    scale.z * (c2 * s1),
+                    scale.z * (-s2),
+                    scale.z * (c1 * c2),
+                    0.0f,
+                },
+                {translation.x, translation.y, translation.z, 1.0f}};
+        }
 	};
 
 	class RigidBody

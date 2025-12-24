@@ -65,7 +65,7 @@ namespace Rendering
 		std::vector<VkVertexInputAttributeDescription> vAttributeDescriptions(2);
 		vAttributeDescriptions[0].binding = 0;
 		vAttributeDescriptions[0].location = 0;
-		vAttributeDescriptions[0].format = VK_FORMAT_R32G32_SFLOAT;
+		vAttributeDescriptions[0].format = VK_FORMAT_R32G32B32_SFLOAT;
 		vAttributeDescriptions[0].offset = offsetof(Vertex, position);
 
 		vAttributeDescriptions[1].binding = 0;

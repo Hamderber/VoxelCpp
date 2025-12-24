@@ -29,7 +29,7 @@ namespace Game
 
 		std::shared_ptr<Rendering::Model> pModel{};
 		glm::vec3 color{};
-		Physics::Transform2D transform2D;
+		Physics::Transform transform{};
 
 	private:
 		GameObject(id_t id) : m_ID{ id } {};
