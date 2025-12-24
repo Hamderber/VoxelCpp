@@ -6,7 +6,7 @@
 static void start_logging(std::filesystem::path root)
 {
 	const bool USE_TIMESTAMP = true;
-	ksc_log::begin(APPLICATION_NAME, root, USE_TIMESTAMP, ksc_log::Level::Debug);
+	ksc_log::begin(ProgramConstants::APP_NAME, root, USE_TIMESTAMP, ksc_log::Level::Debug);
 	ksc_log::debug("Application start (main() START).");
 }
 
@@ -18,7 +18,7 @@ static void end_logging()
 
 int main()
 {
-	auto root = std::filesystem::current_path() / ".." / ".." / "..";
+	auto root = ProgramConstants::root_filepath();
 	start_logging(root);
 
 	App::App VoxelCpp(root);

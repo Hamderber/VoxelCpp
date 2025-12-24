@@ -196,7 +196,17 @@ namespace Rendering
 		}
 		else
 		{
-			m_pSwapchain = std::make_unique<Swapchain>(m_rDevice, m_rWindow.get_extent(), std::move(m_pSwapchain));
+			std::shared_ptr<Swapchain> pOldSwapchain = std::move(m_pSwapchain);
+
+			if (!pOldSwapchain->compare_swap_formats(*m_pSwapchain.get()))
+			{
+				// TODO: Actually deal with this
+				const char *pErrorMessage = "Swapchain image format has changed!";
+				ksc_log::error(pErrorMessage);
+				throw std::runtime_error(pErrorMessage);
+			}
+
+			m_pSwapchain = std::make_unique<Swapchain>(m_rDevice, m_rWindow.get_extent(), pOldSwapchain);
 			if (m_pSwapchain->image_count() != m_vCommandBuffers.size())
 			{
 				command_buffers_destroy();

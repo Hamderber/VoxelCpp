@@ -27,18 +27,17 @@ namespace App
 
 		// TODO: Encapsulate in class(es)
 		void game_objects_load();
-		void pipeline_layout_create();
-		void pipeline_layout_destroy();
-		void pipeline_create();
-		void game_objects_render(VkCommandBuffer commandBuffer);
 
 		// TODO: Encapsulate in a class
-		Rendering::Window m_window{ DEFAULT_WINDOW_WIDTH, DEFAULT_WINDOW_HEIGHT, APPLICATION_NAME };
+		Rendering::Window m_window
+		{
+			ProgramConstants::DEFAULT_WINDOW_WIDTH,
+			ProgramConstants::DEFAULT_WINDOW_HEIGHT,
+			ProgramConstants::APP_NAME
+		};
 		Rendering::Device m_device{ m_window };
 		Rendering::Renderer m_renderer{ m_window, m_device };
 
-		std::unique_ptr<Rendering::Pipeline> m_pPipeline;
-		VkPipelineLayout m_pipelineLayout;
 		std::vector<Game::GameObject> m_vGameObjects;
 
 		std::filesystem::path m_root;
