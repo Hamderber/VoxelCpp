@@ -16,12 +16,14 @@ namespace Rendering
 {
     Swapchain::Swapchain(Device &rDevice, VkExtent2D extent) : m_rDevice{ rDevice }, m_windowExtent{ extent }
     {
+        ksc_log::debug("Creating Swapchain...");
         init();
     }
 
     Swapchain::Swapchain(Device &rDevice, VkExtent2D extent, std::shared_ptr<Swapchain> pPrevious) :
         m_rDevice{ rDevice }, m_windowExtent{ extent }, pOldSwapchain{ pPrevious }
     {
+        ksc_log::debug("Creating Swapchain...");
         init();
 
         pOldSwapchain = nullptr;
@@ -29,6 +31,7 @@ namespace Rendering
 
     Swapchain::~Swapchain()
     {
+        ksc_log::debug("Destroying Swapchain...");
         for (auto imageView : m_vSwapchainImageViews)
         {
             vkDestroyImageView(m_rDevice.device(), imageView, nullptr);
@@ -132,8 +135,6 @@ namespace Rendering
 
     void Swapchain::init()
     {
-        ksc_log::debug("Creating swapchain.");
-
         create_swapchain();
         create_image_views();
         create_render_pass();

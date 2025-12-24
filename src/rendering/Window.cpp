@@ -11,6 +11,7 @@ namespace Rendering
 {
 	Window::Window(int w, int h, const char *pNAME) : m_width{ w }, m_height{ h }, m_pNAME{ pNAME }, m_pWindow{ nullptr }
 	{
+		ksc_log::debug("Creating Window...");
 		if (!glfwInit())
 		{
 			ksc_log::error("glfwInit failed!");
@@ -33,22 +34,18 @@ namespace Rendering
 		uint32_t extensionCount = 0;
 		vkEnumerateInstanceExtensionProperties(nullptr, &extensionCount, nullptr);
 		ksc_log::debug(std::format("{} Vulkan extensions are supported.", extensionCount));
-
-		ksc_log::debug("Window created.");
 	}
 
 	Window::~Window()
 	{
-		ksc_log::debug("Destroying window...");
+		ksc_log::debug("Destroying Window...");
 
 		glfwDestroyWindow(m_pWindow);
 		glfwTerminate();
 	}
 
-	bool Window::poll_or_exit()
+	bool Window::should_close()
 	{
-		glfwPollEvents();
-
 		return glfwWindowShouldClose(m_pWindow);
 	}
 
