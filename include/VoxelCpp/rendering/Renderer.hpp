@@ -23,6 +23,7 @@ namespace Rendering
 		Renderer(const Renderer &) = delete;
 		Renderer &operator=(const Renderer &) = delete;
 
+		const float aspect_ratio() const { return m_pSwapchain->extent_aspect_ratio(); };
 		const bool frame_is_started() const { return m_isFrameStarted; }
 		
 		VkCommandBuffer command_buffer_get_current() const

@@ -16,6 +16,7 @@
 #include <glm/gtc/constants.hpp>
 #include <vulkan/vulkan_core.h>
 #include <VoxelCpp/rendering/RenderSystem.hpp>
+#include <VoxelCpp/rendering/Camera.hpp>
 
 namespace App
 {
@@ -98,7 +99,7 @@ namespace App
 
 		auto cube = Game::GameObject::create();
 		cube.pModel = pModel;
-		cube.transform.translation = { 0.0f, 0.0f, 0.5f };
+		cube.transform.translation = { 0.0f, 0.0f, 2.5f };
 		cube.transform.scale = { 0.5f, 0.5f, 0.5f };
 
 		m_vGameObjects.push_back(std::move(cube));
@@ -107,6 +108,11 @@ namespace App
 	void App::loop(void)
 	{
 		Rendering::RenderSystem renderSystem{ m_device, m_renderer.swapchain_renderpass_get() };
+		
+		Rendering::Camera camera{};
+		camera.set_view_direction(glm::vec3(0), glm::vec3(0.5f, 0, 1));
+		//camera.projection_perspective_set(glm::radians(50.f), m_renderer.aspect_ratio(), 0.1f, 10.0f);
+		camera.set_view_target(glm::vec3(-1.f, -2.f, 2.f), glm::vec3(0.f, 0.f, 2.5f));
 
 		while (!m_window.should_close())
 		{
@@ -115,7 +121,7 @@ namespace App
 			if (auto commandBuffer = m_renderer.frame_begin())
 			{
 				m_renderer.swapchain_renderpass_begin(commandBuffer);
-				renderSystem.game_objects_render(commandBuffer, m_vGameObjects);
+				renderSystem.game_objects_render(commandBuffer, m_vGameObjects, camera);
 				m_renderer.swapchain_renderpass_end(commandBuffer);
 				m_renderer.frame_end();
 			}

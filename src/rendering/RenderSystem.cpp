@@ -5,6 +5,7 @@
 #include <VoxelCpp/rendering/RenderSystem.hpp>
 #include <VoxelCpp/rendering/Pipeline.hpp>
 #include <VoxelCpp/game/GameObject.hpp>
+#include <VoxelCpp/rendering/Camera.hpp>
 #include <stdexcept>
 #include <vector>
 #include <vulkan/vulkan_core.h>
@@ -27,9 +28,11 @@ namespace Rendering
 		pipeline_destroy();
 	}
 
-	void RenderSystem::game_objects_render(VkCommandBuffer commandBuffer, std::vector<Game::GameObject> &vGameObjects)
+	void RenderSystem::game_objects_render(VkCommandBuffer commandBuffer, std::vector<Game::GameObject> &vGameObjects, const Camera &rCAMERA)
 	{
 		m_pPipeline->bind(commandBuffer);
+
+		auto projectionView = rCAMERA.projection_get() * rCAMERA.view_get();
 
 		for (auto &go : vGameObjects)
 		{
@@ -40,7 +43,7 @@ namespace Rendering
 
 			Rendering::SimplePushConstantData push{};
 			push.color = go.color;
-			push.transform = go.transform.matrix();
+			push.transform = projectionView * go.transform.matrix();
 
 			vkCmdPushConstants((commandBuffer), m_pipelineLayout, VK_SHADER_STAGE_FRAGMENT_BIT | VK_SHADER_STAGE_VERTEX_BIT,
 							   0, static_cast<uint32_t>(sizeof(Rendering::SimplePushConstantData)), &push);

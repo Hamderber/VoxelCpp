@@ -5,7 +5,7 @@
 #include <glm/fwd.hpp>
 
 namespace Game { class GameObject; }
-namespace Rendering { class Device; class Pipeline; }
+namespace Rendering { class Device; class Pipeline; class Camera; }
 
 namespace Rendering
 {
@@ -25,7 +25,7 @@ namespace Rendering
 		RenderSystem(const RenderSystem &) = delete;
 		RenderSystem &operator=(const RenderSystem &) = delete;
 
-		void game_objects_render(VkCommandBuffer commandBuffer, std::vector<Game::GameObject> &vGameObjects);
+		void game_objects_render(VkCommandBuffer commandBuffer, std::vector<Game::GameObject> &vGameObjects, const Camera &rCAMERA);
 
 	private:
 		void pipeline_layout_create();
