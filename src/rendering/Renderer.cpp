@@ -113,7 +113,7 @@ namespace Rendering
 		rendBeginInfo.renderArea.extent = m_pSwapchain->get_extent();
 
 		std::array<VkClearValue, 2> aClearValues{};
-		aClearValues[0].color = { 0.1f, 0.1f, 0.1f, 1.0f };
+		aClearValues[0].color = { 0.0f, 0.0f, 0.0f, 1.0f };
 		aClearValues[1].depthStencil = { 1.0f, 0 };
 
 		rendBeginInfo.clearValueCount = static_cast<uint32_t>(aClearValues.size());

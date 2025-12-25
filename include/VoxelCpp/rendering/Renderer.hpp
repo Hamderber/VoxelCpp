@@ -14,14 +14,6 @@
 
 namespace Rendering
 {
-	// TEMPORARY
-	struct SimplePushConstantData
-	{
-		glm::mat2 transform{ 1 };
-		glm::vec2 offset;
-		alignas(16) glm::vec3 color;
-	};
-
 	class Renderer
 	{
 	public:
@@ -31,6 +23,7 @@ namespace Rendering
 		Renderer(const Renderer &) = delete;
 		Renderer &operator=(const Renderer &) = delete;
 
+		const float aspect_ratio() const { return m_pSwapchain->extent_aspect_ratio(); };
 		const bool frame_is_started() const { return m_isFrameStarted; }
 		
 		VkCommandBuffer command_buffer_get_current() const

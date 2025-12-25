@@ -2,12 +2,20 @@
 #include <vulkan/vulkan_core.h>
 #include <vector>
 #include <memory>
+#include <glm/fwd.hpp>
 
 namespace Game { class GameObject; }
-namespace Rendering { class Device; class Pipeline; }
+namespace Rendering { class Device; class Pipeline; class Camera; }
 
 namespace Rendering
 {
+	// TEMPORARY
+	struct SimplePushConstantData
+	{
+		glm::mat4 transform{ 1.0f };
+		alignas(16) glm::vec3 color;
+	};
+
 	class RenderSystem
 	{
 	public:
@@ -17,7 +25,7 @@ namespace Rendering
 		RenderSystem(const RenderSystem &) = delete;
 		RenderSystem &operator=(const RenderSystem &) = delete;
 
-		void game_objects_render(VkCommandBuffer commandBuffer, std::vector<Game::GameObject> &vGameObjects);
+		void game_objects_render(VkCommandBuffer commandBuffer, std::vector<Game::GameObject> &vGameObjects, const Camera &rCAMERA);
 
 	private:
 		void pipeline_layout_create();
