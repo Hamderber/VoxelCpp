@@ -20,7 +20,7 @@ namespace Physics
 
 		/// <summary>
 		/// Order: Translate * Ry * Rx * Rz * scale. Tait-Bryan Euler Angles order Y(1) X(2) Z(3). Optimized to directly apply to
-        /// the applicable mat4 members.
+        /// the applicable mat4 members. To interperet as extrinsic, read YXZ from right to left and intrinsic as left to right.
 		/// </summary>
 		/// <returns>glm::mat4 transformation matrix</returns>
         glm::mat4 matrix() const
