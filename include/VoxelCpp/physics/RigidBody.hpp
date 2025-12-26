@@ -31,7 +31,7 @@ namespace Physics
             const float s2 = glm::sin(eulerRotationRadians.x);
             const float c1 = glm::cos(eulerRotationRadians.y);
             const float s1 = glm::sin(eulerRotationRadians.y);
-            return glm::mat4{
+            glm::mat4 result{
                 {
                     scale.x * (c1 * c3 + s1 * s2 * s3),
                     scale.x * (c2 * s3),
@@ -51,6 +51,8 @@ namespace Physics
                     0.0f,
                 },
                 {translation.x, translation.y, translation.z, 1.0f}};
+
+            return result;
         }
 	};
 

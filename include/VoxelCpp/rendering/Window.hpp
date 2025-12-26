@@ -15,6 +15,8 @@ namespace Rendering
 		Window(const Window &) = delete;
 		Window &operator=(const Window &) = delete;
 
+		GLFWwindow *GLFWwindow_get() const { return m_pWindow; }
+
 		bool should_close();
 		void create_surface(VkInstance instance, VkSurfaceKHR *pSurface);
 		VkExtent2D get_extent() { return { static_cast<uint32_t>(m_width), static_cast<uint32_t>(m_height) }; }
