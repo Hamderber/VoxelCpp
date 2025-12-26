@@ -17,6 +17,11 @@
 #include <vulkan/vulkan_core.h>
 #include <VoxelCpp/rendering/RenderSystem.hpp>
 #include <VoxelCpp/rendering/Camera.hpp>
+#include <chrono>
+#include <VoxelCpp/input/KeyboardMovementController.hpp>
+#include <glm/glm.hpp>
+#include <glm/fwd.hpp>
+#include <glm/detail/compute_common.hpp>
 
 namespace App
 {
@@ -107,16 +112,30 @@ namespace App
 
 	void App::loop(void)
 	{
+		// TODO: Make this not a complete mess
+
 		Rendering::RenderSystem renderSystem{ m_device, m_renderer.swapchain_renderpass_get() };
 		
 		Rendering::Camera camera{};
-		camera.set_view_direction(glm::vec3(0), glm::vec3(0.5f, 0, 1));
-		//camera.projection_perspective_set(glm::radians(50.f), m_renderer.aspect_ratio(), 0.1f, 10.0f);
-		camera.set_view_target(glm::vec3(-1.f, -2.f, 2.f), glm::vec3(0.f, 0.f, 2.5f));
+
+		auto cameraObject = Game::GameObject::create();
+		Input::KeyboardMovementController cameraController{};
+
+		// Call this last for accurate timestamps
+		auto currentTime = std::chrono::high_resolution_clock::now();
 
 		while (!m_window.should_close())
 		{
 			glfwPollEvents();
+
+			auto newTime = std::chrono::high_resolution_clock::now();
+			float dt = std::chrono::duration<float, std::ratio<1>>(newTime - currentTime).count();
+			dt = glm::min(dt, ProgramConstants::MAX_FRAME_TIME_SEC);
+			currentTime = newTime;
+
+			cameraController.move_in_plane_xz(m_window.GLFWwindow_get(), cameraObject, dt);
+			camera.set_view_yxz(cameraObject.transform.translation, cameraObject.transform.eulerRotationRadians);
+			camera.projection_perspective_set(glm::radians(50.f), m_renderer.aspect_ratio(), 0.1f, 10.f);
 
 			if (auto commandBuffer = m_renderer.frame_begin())
 			{
