@@ -6,6 +6,8 @@
 #include <glm/glm.hpp>
 #include <glm/fwd.hpp>
 #include <vector>
+#include <memory>
+#include <string>
 
 namespace Rendering { class Device; };
 
@@ -17,17 +19,26 @@ namespace Rendering
 
 		struct Vertex
 		{
-			glm::vec3 position;
-			glm::vec3 color;
+			glm::vec3 position{};
+			glm::vec3 color{};
+			glm::vec3 normal{};
+			glm::vec2 uv{};
 
 			static std::vector<VkVertexInputBindingDescription> get_binding_descriptions();
 			static std::vector<VkVertexInputAttributeDescription> get_attribute_descriptions();
+
+			bool operator==(const Vertex &rOTHER) const
+			{
+				return position == rOTHER.position && color == rOTHER.color && normal == rOTHER.normal && uv == rOTHER.uv;
+			}
 		};
 
 		struct Builder
 		{
 			std::vector<Vertex> vVerticies{};
 			std::vector<uint32_t> vIndices{};
+
+			void load_model(const std::string &rFILE_PATH);
 		};
 
 		Model(Device &rDevice, const Builder &rBUILDER);
@@ -35,6 +46,8 @@ namespace Rendering
 
 		Model(const Model &) = delete;
 		Model &operator=(const Model &) = delete;
+
+		static std::unique_ptr<Model> create_model_from_file(Device &rDevice, const std::string &rFILE_PATH);
 
 		void bind(VkCommandBuffer commandBuffer);
 		void draw(VkCommandBuffer commandBuffer) const;

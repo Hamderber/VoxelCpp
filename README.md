@@ -1,13 +1,20 @@
 # VoxelCpp
-An experimental voxel game engine in Cpp (for learning)
+###### An experimental voxel game engine in C++ 23 (for learning)
 
-# Dependencies and versions:
-- KSC_Log 1.0 https://github.com/Hamderber/KSC_Log
-- Vulkan 1.3 https://www.vulkan.org/
-- GLFW 3.4 https://www.glfw.org/
-- C++ 23
+## This project is proudly LLM free!
 
-# Credit and useful resources used:
+## Dependencies and versions:
+| Type | Name/Version | Link |
+|-|-|-|
+| Language | C++ 23 | https://www.learncpp.com/ |
+| Compiler | CMake 3.15 | https://cmake.org/ |
+| Logging | KSC_Log 1.0 | https://github.com/Hamderber/KSC_Log |
+| Window | GLFW 3.4 | https://www.glfw.org/ |
+| Rendering | Vulkan 1.3 | https://www.vulkan.org/ |
+| Shaders | GLSL 460 | https://learnopengl.com/Getting-started/Shaders |
+| Models | TinyObjectLoader | https://github.com/tinyobjloader/tinyobjloader |
+
+## Credit and useful resources:
 - Markdown for this readme https://markdownlivepreview.com/
 - Vulkan implementation https://vulkan-tutorial.com/
 - C++ https://www.learncpp.com/

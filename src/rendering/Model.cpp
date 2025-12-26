@@ -1,3 +1,4 @@
+#include <ksc_log.hpp>
 #include <VoxelCpp/rendering/Model.hpp>
 #include <VoxelCpp/rendering/Device.hpp>
 #include <vector>
@@ -6,6 +7,28 @@
 #include <cstdint>
 #include <cstring>
 #include <cstddef>
+#define TINYOBJLOADER_IMPLEMENTATION
+#include <tinyobjectloader/tiny_obj_loader.h>
+#include <memory>
+#include <stdexcept>
+#include <VoxelCpp/util/ObjectHashing.hpp>
+#define GLM_ENABLE_EXPERIMENTAL
+#include <glm/gtx/hash.hpp>
+#include <unordered_map>
+
+namespace std
+{
+	template<>
+	struct hash<Rendering::Model::Vertex>
+	{
+		size_t operator()(Rendering::Model::Vertex const &rVERTEX) const
+		{
+			size_t seed{};
+			Util::hash_combine(seed, rVERTEX.position, rVERTEX.color, rVERTEX.normal, rVERTEX.uv);
+			return seed;
+		}
+	};
+}
 
 namespace Rendering
 {
@@ -25,6 +48,16 @@ namespace Rendering
 			vkDestroyBuffer(m_rDevice.device(), m_indexBuffer, nullptr);
 			vkFreeMemory(m_rDevice.device(), m_indexBufferMemory, nullptr);
 		}
+	}
+
+	std::unique_ptr<Model> Model::create_model_from_file(Device &rDevice, const std::string &rFILE_PATH)
+	{
+		Builder builder{};
+		builder.load_model(rFILE_PATH);
+
+		ksc_log::debug(std::format("Model loaded. Vertex count: {}", builder.vVerticies.size()));
+
+		return std::make_unique<Model>(rDevice, builder);
 	}
 
 	void Model::bind(VkCommandBuffer commandBuffer)
@@ -143,5 +176,91 @@ namespace Rendering
 		vAttributeDescriptions[1].offset = offsetof(Vertex, color);
 
 		return vAttributeDescriptions;
+	}
+
+	void Model::Builder::load_model(const std::string &rFILE_PATH)
+	{
+		ksc_log::debug("Loading model from path " + rFILE_PATH);
+
+		// TODO: Consider baseline reserve size?
+
+		// Position, color, normal, texture coordinate data
+		tinyobj::attrib_t attrib;
+		// Index values for each face element
+		std::vector<tinyobj::shape_t> shapes;
+		// Object surface materials
+		std::vector<tinyobj::material_t> materials;
+		// Populated by tinyObjLoader (C str)
+		std::string warn, error;
+
+		if (!tinyobj::LoadObj(&attrib, &shapes, &materials, &warn, &error, rFILE_PATH.c_str()))
+		{
+			std::string errorMessage = warn + error;
+			ksc_log::error(errorMessage);
+			throw std::runtime_error(errorMessage);
+		}
+
+		vVerticies.clear();
+		vIndices.clear();
+
+		std::unordered_map<Vertex, uint32_t> mUniqueVerticies{};
+
+		for (const auto &shape : shapes)
+		{
+			for (const auto &index : shape.mesh.indices)
+			{
+				Vertex vertex{};
+
+				// Negative means no index was provided (it's optional)
+				if (index.vertex_index >= 0)
+				{
+					vertex.position = {
+						attrib.vertices[3 * index.vertex_index + 0],
+						attrib.vertices[3 * index.vertex_index + 1],
+						attrib.vertices[3 * index.vertex_index + 2],
+					};
+
+					auto colorIndex = 3 * index.vertex_index + 2;
+					// Colors are optional and are potentially not present
+					if (colorIndex < attrib.colors.size())
+					{
+						vertex.color = {
+							attrib.colors[colorIndex - 2],
+							attrib.colors[colorIndex - 1],
+							attrib.colors[colorIndex - 0],
+						};
+					}
+					else
+					{
+						// Default color
+						vertex.color = { 1.f, 1.f, 1.f };
+					}
+				}
+
+				if (index.normal_index >= 0)
+				{
+					vertex.normal = {
+						attrib.normals[3 * index.normal_index + 0],
+						attrib.normals[3 * index.normal_index + 1],
+						attrib.normals[3 * index.normal_index + 2],
+					};
+				}
+
+				if (index.texcoord_index >= 0)
+				{
+					vertex.uv = {
+						attrib.texcoords[2 * index.texcoord_index + 0],
+						attrib.texcoords[2 * index.texcoord_index + 1],
+					};
+				}
+
+				if (mUniqueVerticies.count(vertex) == 0)
+				{
+					mUniqueVerticies[vertex] = static_cast<uint32_t>(vVerticies.size());
+					vVerticies.push_back(vertex);
+				}
+				vIndices.push_back(mUniqueVerticies[vertex]);
+			}
+		}
 	}
 }
