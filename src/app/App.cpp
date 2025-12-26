@@ -40,62 +40,55 @@ namespace App
 	// Temporary
 	std::unique_ptr<Rendering::Model> createCubeModel(Rendering::Device &device, glm::vec3 offset)
 	{
-		std::vector<Rendering::Model::Vertex> vertices{
+		Rendering::Model::Builder modelBuilder{};
 
+		modelBuilder.vVerticies = {
 			// left face (white)
-			{{-.5f, -.5f, -.5f}, {.9f, .9f, .9f}},
-			{{-.5f, .5f, .5f}, {.9f, .9f, .9f}},
-			{{-.5f, -.5f, .5f}, {.9f, .9f, .9f}},
-			{{-.5f, -.5f, -.5f}, {.9f, .9f, .9f}},
-			{{-.5f, .5f, -.5f}, {.9f, .9f, .9f}},
-			{{-.5f, .5f, .5f}, {.9f, .9f, .9f}},
+		  {{-.5f, -.5f, -.5f}, {.9f, .9f, .9f}},
+		  {{-.5f, .5f, .5f}, {.9f, .9f, .9f}},
+		  {{-.5f, -.5f, .5f}, {.9f, .9f, .9f}},
+		  {{-.5f, .5f, -.5f}, {.9f, .9f, .9f}},
 
-			// right face (yellow)
-			{{.5f, -.5f, -.5f}, {.8f, .8f, .1f}},
-			{{.5f, .5f, .5f}, {.8f, .8f, .1f}},
-			{{.5f, -.5f, .5f}, {.8f, .8f, .1f}},
-			{{.5f, -.5f, -.5f}, {.8f, .8f, .1f}},
-			{{.5f, .5f, -.5f}, {.8f, .8f, .1f}},
-			{{.5f, .5f, .5f}, {.8f, .8f, .1f}},
+		  // right face (yellow)
+		  {{.5f, -.5f, -.5f}, {.8f, .8f, .1f}},
+		  {{.5f, .5f, .5f}, {.8f, .8f, .1f}},
+		  {{.5f, -.5f, .5f}, {.8f, .8f, .1f}},
+		  {{.5f, .5f, -.5f}, {.8f, .8f, .1f}},
 
-			// top face (orange, remember y axis points down)
-			{{-.5f, -.5f, -.5f}, {.9f, .6f, .1f}},
-			{{.5f, -.5f, .5f}, {.9f, .6f, .1f}},
-			{{-.5f, -.5f, .5f}, {.9f, .6f, .1f}},
-			{{-.5f, -.5f, -.5f}, {.9f, .6f, .1f}},
-			{{.5f, -.5f, -.5f}, {.9f, .6f, .1f}},
-			{{.5f, -.5f, .5f}, {.9f, .6f, .1f}},
+		  // top face (red)
+		  {{-.5f, .5f, -.5f}, {.8f, .1f, .1f}},
+		  {{.5f, .5f, .5f}, {.8f, .1f, .1f}},
+		  {{-.5f, .5f, .5f}, {.8f, .1f, .1f}},
+		  {{.5f, .5f, -.5f}, {.8f, .1f, .1f}},
 
-			// bottom face (red)
-			{{-.5f, .5f, -.5f}, {.8f, .1f, .1f}},
-			{{.5f, .5f, .5f}, {.8f, .1f, .1f}},
-			{{-.5f, .5f, .5f}, {.8f, .1f, .1f}},
-			{{-.5f, .5f, -.5f}, {.8f, .1f, .1f}},
-			{{.5f, .5f, -.5f}, {.8f, .1f, .1f}},
-			{{.5f, .5f, .5f}, {.8f, .1f, .1f}},
+		  // bottom face (orange, remember y axis points down)
+		  {{-.5f, -.5f, -.5f}, {.9f, .6f, .1f}},
+		  {{.5f, -.5f, .5f}, {.9f, .6f, .1f}},
+		  {{-.5f, -.5f, .5f}, {.9f, .6f, .1f}},
+		  {{.5f, -.5f, -.5f}, {.9f, .6f, .1f}},
 
-			// nose face (blue)
-			{{-.5f, -.5f, 0.5f}, {.1f, .1f, .8f}},
-			{{.5f, .5f, 0.5f}, {.1f, .1f, .8f}},
-			{{-.5f, .5f, 0.5f}, {.1f, .1f, .8f}},
-			{{-.5f, -.5f, 0.5f}, {.1f, .1f, .8f}},
-			{{.5f, -.5f, 0.5f}, {.1f, .1f, .8f}},
-			{{.5f, .5f, 0.5f}, {.1f, .1f, .8f}},
+		  // nose face (blue)
+		  {{-.5f, -.5f, 0.5f}, {.1f, .1f, .8f}},
+		  {{.5f, .5f, 0.5f}, {.1f, .1f, .8f}},
+		  {{-.5f, .5f, 0.5f}, {.1f, .1f, .8f}},
+		  {{.5f, -.5f, 0.5f}, {.1f, .1f, .8f}},
 
-			// tail face (green)
-			{{-.5f, -.5f, -0.5f}, {.1f, .8f, .1f}},
-			{{.5f, .5f, -0.5f}, {.1f, .8f, .1f}},
-			{{-.5f, .5f, -0.5f}, {.1f, .8f, .1f}},
-			{{-.5f, -.5f, -0.5f}, {.1f, .8f, .1f}},
-			{{.5f, -.5f, -0.5f}, {.1f, .8f, .1f}},
-			{{.5f, .5f, -0.5f}, {.1f, .8f, .1f}},
-
+		  // tail face (green)
+		  {{-.5f, -.5f, -0.5f}, {.1f, .8f, .1f}},
+		  {{.5f, .5f, -0.5f}, {.1f, .8f, .1f}},
+		  {{-.5f, .5f, -0.5f}, {.1f, .8f, .1f}},
+		  {{.5f, -.5f, -0.5f}, {.1f, .8f, .1f}},
 		};
-		for (auto &v : vertices)
+
+		for (auto &v : modelBuilder.vVerticies)
 		{
 			v.position += offset;
 		}
-		return std::make_unique<Rendering::Model>(device, vertices);
+
+		modelBuilder.vIndices = { 0,  1,  2,  0,  3,  1,  4,  5,  6,  4,  7,  5,  8,  9,  10, 8,  11, 9,
+						  12, 13, 14, 12, 15, 13, 16, 17, 18, 16, 19, 17, 20, 21, 22, 20, 23, 21 };
+
+		return std::make_unique<Rendering::Model>(device, modelBuilder);
 	}
 
 	void App::game_objects_load()

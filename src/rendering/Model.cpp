@@ -9,15 +9,22 @@
 
 namespace Rendering
 {
-	Model::Model(Device &rDevice, const std::vector<Vertex> &rVERTICIES) : m_rDevice { rDevice }
+	Model::Model(Device &rDevice, const Builder &rBUILDER) : m_rDevice { rDevice }
 	{
-		create_vertex_buffers(rVERTICIES);
+		create_vertex_buffer(rBUILDER.vVerticies);
+		create_index_buffer(rBUILDER.vIndices);
 	}
 
 	Model::~Model()
 	{
 		vkDestroyBuffer(m_rDevice.device(), m_vertexBuffer, nullptr);
 		vkFreeMemory(m_rDevice.device(), m_vertexBufferMemory, nullptr);
+
+		if (m_hasIndexBuffer)
+		{
+			vkDestroyBuffer(m_rDevice.device(), m_indexBuffer, nullptr);
+			vkFreeMemory(m_rDevice.device(), m_indexBufferMemory, nullptr);
+		}
 	}
 
 	void Model::bind(VkCommandBuffer commandBuffer)
@@ -26,27 +33,89 @@ namespace Rendering
 		VkBuffer pBuffers[BUFFER_COUNT] = { m_vertexBuffer };
 		VkDeviceSize pOffsets[BUFFER_COUNT] = { 0 };
 		vkCmdBindVertexBuffers(commandBuffer, 0, BUFFER_COUNT, pBuffers, pOffsets);
+
+		if (m_hasIndexBuffer)
+		{
+			// Consider adding a model validation path that changes the index buffer type and member variable to be uint_16t
+			// if there aren't any models loaded that exceed the 65k threshold.
+			vkCmdBindIndexBuffer(commandBuffer, m_indexBuffer, 0, VK_INDEX_TYPE_UINT32);
+		}
 	}
 
 	void Model::draw(VkCommandBuffer commandBuffer) const
 	{
-		vkCmdDraw(commandBuffer, m_vertexCount, 1, 0, 0);
+		if (m_hasIndexBuffer)
+		{
+			vkCmdDrawIndexed(commandBuffer, m_indexCount, 1, 0, 0, 0);
+		}
+		else
+		{
+			vkCmdDraw(commandBuffer, m_vertexCount, 1, 0, 0);
+		}
 	}
 
-	void Model::create_vertex_buffers(const std::vector<Vertex> &rVERTICIES)
+	void Model::create_vertex_buffer(const std::vector<Vertex> &rVERTICIES)
 	{
 		m_vertexCount = static_cast<uint32_t>(rVERTICIES.size());
 		assert(m_vertexCount >= 3 && "Vertex count must be at least 3 (to make a triangle).");
 		
-		size_t bufferSize = sizeof(rVERTICIES[0]) * m_vertexCount;
-		m_rDevice.create_buffer(bufferSize, VK_BUFFER_USAGE_VERTEX_BUFFER_BIT,
+		VkDeviceSize bufferSize = sizeof(rVERTICIES[0]) * m_vertexCount;
+
+		VkBuffer stagingBuffer;
+		VkDeviceMemory stagingBufferMemory;
+
+		m_rDevice.create_buffer(bufferSize,
+								VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
 								VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
-								m_vertexBuffer, m_vertexBufferMemory);
+								stagingBuffer, stagingBufferMemory);
 
 		void *pData;
-		vkMapMemory(m_rDevice.device(), m_vertexBufferMemory, 0, bufferSize, 0, &pData);
+		vkMapMemory(m_rDevice.device(), stagingBufferMemory, 0, bufferSize, 0, &pData);
 		memcpy(pData, rVERTICIES.data(), bufferSize);
-		vkUnmapMemory(m_rDevice.device(), m_vertexBufferMemory);
+		vkUnmapMemory(m_rDevice.device(), stagingBufferMemory);
+
+		m_rDevice.create_buffer(bufferSize,
+								VK_BUFFER_USAGE_VERTEX_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT,
+								VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
+								m_vertexBuffer, m_vertexBufferMemory);
+
+		m_rDevice.copy_buffer(stagingBuffer, m_vertexBuffer, bufferSize);
+
+		vkDestroyBuffer(m_rDevice.device(), stagingBuffer, nullptr);
+		vkFreeMemory(m_rDevice.device(), stagingBufferMemory, nullptr);
+	}
+
+	void Model::create_index_buffer(const std::vector<uint32_t> &rINDICIES)
+	{
+		m_indexCount = static_cast<uint32_t>(rINDICIES.size());
+		m_hasIndexBuffer = m_indexCount > 0;
+
+		if (!m_hasIndexBuffer) return;
+
+		VkDeviceSize bufferSize = sizeof(rINDICIES[0]) * m_indexCount;
+
+		VkBuffer stagingBuffer;
+		VkDeviceMemory stagingBufferMemory;
+
+		m_rDevice.create_buffer(bufferSize,
+								VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
+								VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
+								stagingBuffer, stagingBufferMemory);
+
+		void *pData;
+		vkMapMemory(m_rDevice.device(), stagingBufferMemory, 0, bufferSize, 0, &pData);
+		memcpy(pData, rINDICIES.data(), bufferSize);
+		vkUnmapMemory(m_rDevice.device(), stagingBufferMemory);
+
+		m_rDevice.create_buffer(bufferSize,
+								VK_BUFFER_USAGE_INDEX_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT,
+								VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
+								m_indexBuffer, m_indexBufferMemory);
+
+		m_rDevice.copy_buffer(stagingBuffer, m_indexBuffer, bufferSize);
+
+		vkDestroyBuffer(m_rDevice.device(), stagingBuffer, nullptr);
+		vkFreeMemory(m_rDevice.device(), stagingBufferMemory, nullptr);
 	}
 
 	std::vector<VkVertexInputBindingDescription> Model::Vertex::get_binding_descriptions()

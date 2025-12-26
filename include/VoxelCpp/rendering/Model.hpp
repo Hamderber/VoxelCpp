@@ -24,7 +24,13 @@ namespace Rendering
 			static std::vector<VkVertexInputAttributeDescription> get_attribute_descriptions();
 		};
 
-		Model(Device &rDevice, const std::vector<Vertex> &rVERTICIES);
+		struct Builder
+		{
+			std::vector<Vertex> vVerticies{};
+			std::vector<uint32_t> vIndices{};
+		};
+
+		Model(Device &rDevice, const Builder &rBUILDER);
 		~Model();
 
 		Model(const Model &) = delete;
@@ -34,11 +40,18 @@ namespace Rendering
 		void draw(VkCommandBuffer commandBuffer) const;
 
 	private:
-		void create_vertex_buffers(const std::vector<Vertex> &rVERTICIES);
+		void create_vertex_buffer(const std::vector<Vertex> &rVERTICIES);
+		void create_index_buffer(const std::vector<uint32_t> &rINDICIES);
 
 		Device &m_rDevice;
+
 		VkBuffer m_vertexBuffer;
 		VkDeviceMemory m_vertexBufferMemory;
 		uint32_t m_vertexCount;
+	
+		bool m_hasIndexBuffer = false;
+		VkBuffer m_indexBuffer;
+		VkDeviceMemory m_indexBufferMemory;
+		uint32_t m_indexCount;
 	};
 }
