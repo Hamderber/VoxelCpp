@@ -3,6 +3,7 @@
 #include <vector>
 #include <memory>
 #include <glm/fwd.hpp>
+#include "FrameInfo.hpp"
 
 namespace Game { class GameObject; }
 namespace Rendering { class Device; class Pipeline; class Camera; }
@@ -24,7 +25,7 @@ namespace Rendering
 		RenderSystem(const RenderSystem &) = delete;
 		RenderSystem &operator=(const RenderSystem &) = delete;
 
-		void game_objects_render(FrameInfo &rFrameInfo, std::vector<Game::GameObject> &vGameObjects);
+		void game_objects_render(FrameInfo &rFrameInfo);
 
 	private:
 		void pipeline_layout_create(VkDescriptorSetLayout globalDescSetLayout);

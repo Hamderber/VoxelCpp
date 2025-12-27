@@ -42,7 +42,6 @@ namespace App
 		Rendering::Renderer m_renderer{ m_window, m_device };
 
 		std::unique_ptr<Rendering::DescriptorPool> m_pGlobalDescriptorPool{};
-		std::vector<Game::GameObject> m_vGameObjects;
-
+		Game::GameObject::Map m_mGameObjects;
 	};
 }

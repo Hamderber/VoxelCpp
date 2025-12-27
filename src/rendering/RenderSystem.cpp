@@ -28,15 +28,16 @@ namespace Rendering
 		pipeline_destroy();
 	}
 
-	void RenderSystem::game_objects_render(FrameInfo &rFrameInfo, std::vector<Game::GameObject> &vGameObjects)
+	void RenderSystem::game_objects_render(FrameInfo &rFrameInfo)
 	{
 		m_pPipeline->bind(rFrameInfo.commandBuffer);
 
 		vkCmdBindDescriptorSets(rFrameInfo.commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_pipelineLayout, 0, 1,
 								&rFrameInfo.globalDescSet, 0, nullptr);
 
-		for (auto &go : vGameObjects)
+		for (auto &kvp : rFrameInfo.rGameObjects)
 		{
+			auto &go = kvp.second;
 			Rendering::SimplePushConstantData push{};
 			auto modelMatrix = go.transform.matrix();
 			push.modelMatrix = modelMatrix;

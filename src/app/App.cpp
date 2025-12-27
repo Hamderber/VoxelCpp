@@ -23,6 +23,8 @@
 #include <glm/fwd.hpp>
 #include <glm/detail/compute_common.hpp>
 #include <VoxelCpp/rendering/FrameInfo.hpp>
+#include <VoxelCpp/app/ProgramConstants.hpp>
+#include <cmath>
 
 namespace App
 {
@@ -48,15 +50,21 @@ namespace App
 	{
 		auto root = ProgramConstants::root_filepath();
 
-		std::shared_ptr<Rendering::Model> pModel =
+		std::shared_ptr<Rendering::Model> pCarrierModel = 
 			Rendering::Model::create_model_from_file(m_device, (root / "res/models/carrier.obj").generic_string());
+		auto carrierObj = Game::GameObject::create();
+		carrierObj.pModel = pCarrierModel;
+		carrierObj.transform.translation = { 0.f, 0.f, 0.f };
+		carrierObj.transform.uniformScale = 1.5f;
+		m_mGameObjects.emplace(carrierObj.id(), std::move(carrierObj));
 
-		auto gameObject = Game::GameObject::create();
-		gameObject.pModel = pModel;
-		gameObject.transform.translation = { 0.0f, 0.0f, 2.5f };
-		gameObject.transform.uniformScale = 2.5f;
-
-		m_vGameObjects.push_back(std::move(gameObject));
+		std::shared_ptr<Rendering::Model> pCubeModel =
+			Rendering::Model::create_model_from_file(m_device, (root / "res/models/cube.obj").generic_string());
+		auto cubeObj = Game::GameObject::create();
+		cubeObj.pModel = pCubeModel;
+		cubeObj.transform.translation = { 0.f, -5.f, 0.f };
+		cubeObj.transform.uniformScale = 4.5f;
+		m_mGameObjects.emplace(cubeObj.id(), std::move(cubeObj));
 	}
 
 	// TODO: Make this not a complete mess
@@ -74,7 +82,7 @@ namespace App
 		}
 
 		auto globalSetLayout = Rendering::DescriptorSetLayout::Builder(m_device)
-			.binding_add(0, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_VERTEX_BIT)
+			.binding_add(0, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_ALL_GRAPHICS)
 			.build();
 
 		std::vector<VkDescriptorSet> vGlobalDescriptorSets(Rendering::Swapchain::MAX_FRAMES_IN_FLIGHT);
@@ -95,8 +103,7 @@ namespace App
 
 		// Call this last for accurate timestamps
 		auto currentTime = std::chrono::high_resolution_clock::now();
-
-		float totalTime = 0.0f;
+		float totalTime = 0;
 
 		while (!m_window.should_close())
 		{
@@ -113,8 +120,14 @@ namespace App
 			camera.projection_perspective_set(glm::radians(50.f), m_renderer.aspect_ratio(), 0.1f, 50.f);
 
 			// Test "animations"
-			//m_vGameObjects[0].transform.eulerRotationRadians.y += glm::two_pi<float>() * 0.125f * frame_dt;
-
+			/*float a = 2.f;
+			float w = 2.f;
+			for (auto &kvp : m_mGameObjects)
+			{
+				auto &go = kvp.second;
+				go.transform.translation.y = a * glm::sin(w * totalTime);
+			}*/
+			
 			if (auto commandBuffer = m_renderer.frame_begin())
 			{
 				int frameIndex = m_renderer.frame_index_get();
@@ -123,24 +136,19 @@ namespace App
 					frame_dt,
 					commandBuffer,
 					camera,
-					vGlobalDescriptorSets[frameIndex]};
+					vGlobalDescriptorSets[frameIndex],
+					m_mGameObjects};
 
 				// Phase 1: Update
 				Rendering::GlobalUBO ubo{};
 				ubo.projectionView = camera.projection_get() * camera.view_get();
-
-				// Test spinning directional light source
-				float w = 0.5f;
-				float t = totalTime;
-				glm::vec3 dir = glm::normalize(glm::vec3(glm::cos(w * t), -0.9f, glm::sin(w * t)));
-				ubo.lightDirection = dir;
 				
 				vUboBuffers[frameIndex]->write_to_buffer(&ubo);
 				vUboBuffers[frameIndex]->flush();
 
 				// Phase 2: Draw calls
 				m_renderer.swapchain_renderpass_begin(commandBuffer);
-				renderSystem.game_objects_render(frameInfo, m_vGameObjects);
+				renderSystem.game_objects_render(frameInfo);
 				m_renderer.swapchain_renderpass_end(commandBuffer);
 				m_renderer.frame_end();
 			}
