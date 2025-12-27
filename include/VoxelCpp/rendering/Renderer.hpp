@@ -11,9 +11,16 @@
 #include <glm/glm.hpp>
 #include <glm/fwd.hpp>
 #include <cassert>
+#include <VoxelCpp/rendering/FrameInfo.hpp>
 
 namespace Rendering
 {
+	struct GlobalUBO
+	{
+		glm::mat4 projectionView{ 1.f };
+		glm::vec3 lightDirection = glm::normalize(glm::vec3{ 1.f, 3.f, 1.f });
+	};
+
 	class Renderer
 	{
 	public:
