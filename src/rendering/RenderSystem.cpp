@@ -15,10 +15,10 @@
 
 namespace Rendering
 {
-	RenderSystem::RenderSystem(Device &rDevice, VkRenderPass renderPass) : m_rDevice{ rDevice }
+	RenderSystem::RenderSystem(Device &rDevice, VkRenderPass renderPass, VkDescriptorSetLayout globalDescSetLayout) : m_rDevice{ rDevice }
 	{
 		ksc_log::debug("Creating RenderSystem...");
-		pipeline_layout_create();
+		pipeline_layout_create(globalDescSetLayout);
 		pipeline_create(renderPass);
 	}
 
@@ -32,13 +32,13 @@ namespace Rendering
 	{
 		m_pPipeline->bind(rFrameInfo.commandBuffer);
 
-		auto projectionView = rFrameInfo.rCamera.projection_get() * rFrameInfo.rCamera.view_get();
+		vkCmdBindDescriptorSets(rFrameInfo.commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_pipelineLayout, 0, 1,
+								&rFrameInfo.globalDescSet, 0, nullptr);
 
 		for (auto &go : vGameObjects)
 		{
 			Rendering::SimplePushConstantData push{};
 			auto modelMatrix = go.transform.matrix();
-			push.transform = projectionView * modelMatrix;
 			push.modelMatrix = modelMatrix;
 
 			vkCmdPushConstants((rFrameInfo.commandBuffer), m_pipelineLayout, VK_SHADER_STAGE_FRAGMENT_BIT | VK_SHADER_STAGE_VERTEX_BIT,
@@ -49,17 +49,20 @@ namespace Rendering
 		}
 	}
 
-	void RenderSystem::pipeline_layout_create()
+	void RenderSystem::pipeline_layout_create(VkDescriptorSetLayout globalDescSetLayout)
 	{
 		VkPushConstantRange pushConstantRange{};
 		pushConstantRange.stageFlags = VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT;
 		pushConstantRange.offset = 0;
 		pushConstantRange.size = sizeof(SimplePushConstantData);
 
+		std::vector<VkDescriptorSetLayout> vDescSetLayouts{globalDescSetLayout};
+
+
 		VkPipelineLayoutCreateInfo layoutInfo{};
 		layoutInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
-		layoutInfo.setLayoutCount = 0;
-		layoutInfo.pSetLayouts = nullptr;
+		layoutInfo.setLayoutCount = static_cast<uint32_t>(vDescSetLayouts.size());
+		layoutInfo.pSetLayouts = vDescSetLayouts.data();
 		layoutInfo.pushConstantRangeCount = 1;
 		layoutInfo.pPushConstantRanges = &pushConstantRange;
 

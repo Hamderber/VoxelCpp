@@ -12,14 +12,13 @@ namespace Rendering
 	// TEMPORARY
 	struct SimplePushConstantData
 	{
-		glm::mat4 transform{ 1.f };
 		glm::mat4 modelMatrix{ 1.f };
 	};
 
 	class RenderSystem
 	{
 	public:
-		RenderSystem(Device &rDevice, VkRenderPass renderPass);
+		RenderSystem(Device &rDevice, VkRenderPass renderPass, VkDescriptorSetLayout globalDescSetLayout);
 		~RenderSystem();
 
 		RenderSystem(const RenderSystem &) = delete;
@@ -28,7 +27,7 @@ namespace Rendering
 		void game_objects_render(FrameInfo &rFrameInfo, std::vector<Game::GameObject> &vGameObjects);
 
 	private:
-		void pipeline_layout_create();
+		void pipeline_layout_create(VkDescriptorSetLayout globalDescSetLayout);
 		void pipeline_create(VkRenderPass renderPass);
 		void pipeline_destroy();
 
