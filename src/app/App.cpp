@@ -44,12 +44,12 @@ namespace App
 		auto root = ProgramConstants::root_filepath();
 
 		std::shared_ptr<Rendering::Model> pModel =
-			Rendering::Model::create_model_from_file(m_device, (root / "res/models/smooth_vase.obj").generic_string());
+			Rendering::Model::create_model_from_file(m_device, (root / "res/models/carrier.obj").generic_string());
 
 		auto gameObject = Game::GameObject::create();
 		gameObject.pModel = pModel;
 		gameObject.transform.translation = { 0.0f, 0.0f, 2.5f };
-		gameObject.transform.scale = { 0.5f, 0.5f, 0.5f };
+		gameObject.transform.uniformScale = 2.5f;
 
 		m_vGameObjects.push_back(std::move(gameObject));
 	}
@@ -79,7 +79,9 @@ namespace App
 
 			cameraController.move_in_plane_xz(m_window.GLFWwindow_get(), cameraObject, dt);
 			camera.set_view_yxz(cameraObject.transform.translation, cameraObject.transform.eulerRotationRadians);
-			camera.projection_perspective_set(glm::radians(50.f), m_renderer.aspect_ratio(), 0.1f, 10.f);
+			camera.projection_perspective_set(glm::radians(50.f), m_renderer.aspect_ratio(), 0.1f, 50.f);
+
+			m_vGameObjects[0].transform.eulerRotationRadians.y += glm::two_pi<float>() * 0.125f * dt;
 
 			if (auto commandBuffer = m_renderer.frame_begin())
 			{

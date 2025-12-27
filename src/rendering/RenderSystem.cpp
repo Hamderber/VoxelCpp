@@ -37,8 +37,9 @@ namespace Rendering
 		for (auto &go : vGameObjects)
 		{
 			Rendering::SimplePushConstantData push{};
-			push.color = go.color;
-			push.transform = projectionView * go.transform.matrix();
+			auto modelMatrix = go.transform.matrix();
+			push.transform = projectionView * modelMatrix;
+			push.modelMatrix = modelMatrix;
 
 			vkCmdPushConstants((commandBuffer), m_pipelineLayout, VK_SHADER_STAGE_FRAGMENT_BIT | VK_SHADER_STAGE_VERTEX_BIT,
 							   0, static_cast<uint32_t>(sizeof(Rendering::SimplePushConstantData)), &push);

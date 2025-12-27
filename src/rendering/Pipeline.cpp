@@ -46,7 +46,7 @@ namespace Rendering
 		rConfigInfo.rasterizationInfo.rasterizerDiscardEnable = VK_FALSE;
 		rConfigInfo.rasterizationInfo.polygonMode = VK_POLYGON_MODE_FILL;
 		rConfigInfo.rasterizationInfo.lineWidth = 1.0f;
-		rConfigInfo.rasterizationInfo.cullMode = VK_CULL_MODE_NONE;
+		rConfigInfo.rasterizationInfo.cullMode = VK_CULL_MODE_BACK_BIT;
 		rConfigInfo.rasterizationInfo.frontFace = VK_FRONT_FACE_CLOCKWISE;
 		rConfigInfo.rasterizationInfo.depthBiasEnable = VK_FALSE;
 

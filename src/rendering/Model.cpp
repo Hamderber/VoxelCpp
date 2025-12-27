@@ -164,16 +164,13 @@ namespace Rendering
 
 	std::vector<VkVertexInputAttributeDescription> Model::Vertex::get_attribute_descriptions()
 	{
-		std::vector<VkVertexInputAttributeDescription> vAttributeDescriptions(2);
-		vAttributeDescriptions[0].binding = 0;
-		vAttributeDescriptions[0].location = 0;
-		vAttributeDescriptions[0].format = VK_FORMAT_R32G32B32_SFLOAT;
-		vAttributeDescriptions[0].offset = offsetof(Vertex, position);
+		std::vector<VkVertexInputAttributeDescription> vAttributeDescriptions{};
 
-		vAttributeDescriptions[1].binding = 0;
-		vAttributeDescriptions[1].location = 1;
-		vAttributeDescriptions[1].format = VK_FORMAT_R32G32B32_SFLOAT;
-		vAttributeDescriptions[1].offset = offsetof(Vertex, color);
+		// Location | Binding | Format | Offset				    (What this description is for) vvv
+		vAttributeDescriptions.emplace_back(0, 0, VK_FORMAT_R32G32B32_SFLOAT, offsetof(Vertex, position));
+		vAttributeDescriptions.emplace_back(1, 0, VK_FORMAT_R32G32B32_SFLOAT, offsetof(Vertex, color));
+		vAttributeDescriptions.emplace_back(2, 0, VK_FORMAT_R32G32B32_SFLOAT, offsetof(Vertex, normal));
+		vAttributeDescriptions.emplace_back(3, 0, VK_FORMAT_R32G32_SFLOAT,    offsetof(Vertex, uv));
 
 		return vAttributeDescriptions;
 	}
@@ -220,21 +217,11 @@ namespace Rendering
 						attrib.vertices[3 * index.vertex_index + 2],
 					};
 
-					auto colorIndex = 3 * index.vertex_index + 2;
-					// Colors are optional and are potentially not present
-					if (colorIndex < attrib.colors.size())
-					{
-						vertex.color = {
-							attrib.colors[colorIndex - 2],
-							attrib.colors[colorIndex - 1],
-							attrib.colors[colorIndex - 0],
-						};
-					}
-					else
-					{
-						// Default color
-						vertex.color = { 1.f, 1.f, 1.f };
-					}
+					vertex.color = {
+						attrib.colors[3 * index.vertex_index + 0],
+						attrib.colors[3 * index.vertex_index + 1],
+						attrib.colors[3 * index.vertex_index + 2],
+					};
 				}
 
 				if (index.normal_index >= 0)
