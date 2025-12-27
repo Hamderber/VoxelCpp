@@ -11,5 +11,6 @@ namespace Rendering
 		float frame_dt;
 		VkCommandBuffer commandBuffer;
 		Camera &rCamera;
+		VkDescriptorSet globalDescSet;
 	};
 }

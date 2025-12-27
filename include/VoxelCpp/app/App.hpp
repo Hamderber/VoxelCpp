@@ -9,6 +9,7 @@
 #include <vulkan/vulkan_core.h>
 #include <vector>
 #include <VoxelCpp/game/GameObject.hpp>
+#include <VoxelCpp/rendering/Descriptors.hpp>
 
 namespace App
 {
@@ -28,6 +29,8 @@ namespace App
 		// TODO: Encapsulate in class(es)
 		void game_objects_load();
 
+		std::filesystem::path m_root;
+
 		// TODO: Encapsulate in a class
 		Rendering::Window m_window
 		{
@@ -38,8 +41,8 @@ namespace App
 		Rendering::Device m_device{ m_window };
 		Rendering::Renderer m_renderer{ m_window, m_device };
 
+		std::unique_ptr<Rendering::DescriptorPool> m_pGlobalDescriptorPool{};
 		std::vector<Game::GameObject> m_vGameObjects;
 
-		std::filesystem::path m_root;
 	};
 }

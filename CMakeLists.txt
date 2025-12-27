@@ -21,7 +21,7 @@ file(GLOB_RECURSE VOXELCPP_HEADERS CONFIGURE_DEPENDS
 
 add_executable(VoxelCpp)
 
-target_sources(VoxelCpp PRIVATE ${VOXELCPP_SOURCES} ${VOXELCPP_HEADERS} "src/rendering/Renderer.cpp" "src/rendering/Window.cpp" "src/rendering/Pipeline.cpp" "src/rendering/Device.cpp" "src/rendering/Swapchain.cpp" "src/rendering/Model.cpp" "src/physics/RigidBody.cpp" "src/game/GameObject.cpp" "src/rendering/RenderSystem.cpp" "src/rendering/Camera.cpp" "src/input/KeyboardMovementController.cpp" "src/rendering/Buffer.cpp")
+target_sources(VoxelCpp PRIVATE ${VOXELCPP_SOURCES} ${VOXELCPP_HEADERS} "src/rendering/Renderer.cpp" "src/rendering/Window.cpp" "src/rendering/Pipeline.cpp" "src/rendering/Device.cpp" "src/rendering/Swapchain.cpp" "src/rendering/Model.cpp" "src/physics/RigidBody.cpp" "src/game/GameObject.cpp" "src/rendering/RenderSystem.cpp" "src/rendering/Camera.cpp" "src/input/KeyboardMovementController.cpp" "src/rendering/Buffer.cpp" "src/rendering/Descriptors.cpp")
 
 target_include_directories(VoxelCpp
   PRIVATE
