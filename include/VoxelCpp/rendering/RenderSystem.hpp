@@ -25,7 +25,7 @@ namespace Rendering
 		RenderSystem(const RenderSystem &) = delete;
 		RenderSystem &operator=(const RenderSystem &) = delete;
 
-		void game_objects_render(VkCommandBuffer commandBuffer, std::vector<Game::GameObject> &vGameObjects, const Camera &rCAMERA);
+		void game_objects_render(FrameInfo &rFrameInfo, std::vector<Game::GameObject> &vGameObjects);
 
 	private:
 		void pipeline_layout_create();

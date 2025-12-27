@@ -28,11 +28,11 @@ namespace Rendering
 		pipeline_destroy();
 	}
 
-	void RenderSystem::game_objects_render(VkCommandBuffer commandBuffer, std::vector<Game::GameObject> &vGameObjects, const Camera &rCAMERA)
+	void RenderSystem::game_objects_render(FrameInfo &rFrameInfo, std::vector<Game::GameObject> &vGameObjects)
 	{
-		m_pPipeline->bind(commandBuffer);
+		m_pPipeline->bind(rFrameInfo.commandBuffer);
 
-		auto projectionView = rCAMERA.projection_get() * rCAMERA.view_get();
+		auto projectionView = rFrameInfo.rCamera.projection_get() * rFrameInfo.rCamera.view_get();
 
 		for (auto &go : vGameObjects)
 		{
@@ -41,11 +41,11 @@ namespace Rendering
 			push.transform = projectionView * modelMatrix;
 			push.modelMatrix = modelMatrix;
 
-			vkCmdPushConstants((commandBuffer), m_pipelineLayout, VK_SHADER_STAGE_FRAGMENT_BIT | VK_SHADER_STAGE_VERTEX_BIT,
+			vkCmdPushConstants((rFrameInfo.commandBuffer), m_pipelineLayout, VK_SHADER_STAGE_FRAGMENT_BIT | VK_SHADER_STAGE_VERTEX_BIT,
 							   0, static_cast<uint32_t>(sizeof(Rendering::SimplePushConstantData)), &push);
 
-			go.pModel->bind(commandBuffer);
-			go.pModel->draw(commandBuffer);
+			go.pModel->bind(rFrameInfo.commandBuffer);
+			go.pModel->draw(rFrameInfo.commandBuffer);
 		}
 	}
 
