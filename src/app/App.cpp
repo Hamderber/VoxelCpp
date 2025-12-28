@@ -25,6 +25,7 @@
 #include <VoxelCpp/rendering/FrameInfo.hpp>
 #include <VoxelCpp/app/ProgramConstants.hpp>
 #include <cmath>
+#include <VoxelCpp/rendering/BillboardSystem.hpp>
 
 namespace App
 {
@@ -94,8 +95,16 @@ namespace App
 				.build(vGlobalDescriptorSets[i]);
 		}
 
-		Rendering::RenderSystem renderSystem{ m_device, m_renderer.swapchain_renderpass_get(), globalSetLayout->descriptor_set_layout_get() };
-		
+		Rendering::RenderSystem renderSystem{
+			m_device,
+			m_renderer.swapchain_renderpass_get(),
+			globalSetLayout->descriptor_set_layout_get()};
+
+		Rendering::BillboardSystem billboardSystem{
+			m_device,
+			m_renderer.swapchain_renderpass_get(),
+			globalSetLayout->descriptor_set_layout_get()};
+
 		Rendering::Camera camera{};
 
 		auto cameraObject = Game::GameObject::create();
@@ -141,7 +150,8 @@ namespace App
 
 				// Phase 1: Update
 				Rendering::GlobalUBO ubo{};
-				ubo.projectionView = camera.projection_get() * camera.view_get();
+				ubo.projectionMatrix = camera.projection_get();
+				ubo.viewMatrix = camera.view_get();
 				
 				vUboBuffers[frameIndex]->write_to_buffer(&ubo);
 				vUboBuffers[frameIndex]->flush();
@@ -149,6 +159,7 @@ namespace App
 				// Phase 2: Draw calls
 				m_renderer.swapchain_renderpass_begin(commandBuffer);
 				renderSystem.game_objects_render(frameInfo);
+				billboardSystem.render(frameInfo);
 				m_renderer.swapchain_renderpass_end(commandBuffer);
 				m_renderer.frame_end();
 			}

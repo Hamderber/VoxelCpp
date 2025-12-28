@@ -22,3 +22,5 @@
 - Trivia and stylistic C++ choices/insight https://www.youtube.com/@CodingJesus and https://www.youtube.com/@TheCherno
 - Math https://www.youtube.com/@3blue1brown
 - Engine design patterns https://gameprogrammingpatterns.com/
+- Shaders (GLSL) https://www.opengl-tutorial.org/
+- Billboards https://www.flipcode.com/archives/Billboarding-Excerpt_From_iReal-Time_Renderingi_2E.shtml

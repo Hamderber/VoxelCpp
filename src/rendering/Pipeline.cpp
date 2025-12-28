@@ -107,6 +107,9 @@ namespace Rendering
 		rConfigInfo.dynamicStateInfo.pDynamicStates = rConfigInfo.vDynamicStateEnables.data();
 		rConfigInfo.dynamicStateInfo.dynamicStateCount = static_cast<uint32_t>(rConfigInfo.vDynamicStateEnables.size());
 		rConfigInfo.dynamicStateInfo.flags = 0;
+
+		rConfigInfo.vBindingDescs = Model::Vertex::get_binding_descriptions();
+		rConfigInfo.vAttributeDescs = Model::Vertex::get_attribute_descriptions();
 	}
 
 	void Pipeline::bind(VkCommandBuffer commandBuffer) const
@@ -176,16 +179,16 @@ namespace Rendering
 		pShaderStages[1].pSpecializationInfo = nullptr;
 	
 
-		auto attributeDescriptions = Model::Vertex::get_attribute_descriptions();
-		auto bindingDescriptions = Model::Vertex::get_binding_descriptions();
+		auto &rBindingDescriptions = rCONFIG_INFO.vBindingDescs;
+		auto &rAttributeDescriptions = rCONFIG_INFO.vAttributeDescs;
 
 		VkPipelineVertexInputStateCreateInfo vertexInputInfo{};
 		vertexInputInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
 		// Hardcoded points for hello world
-		vertexInputInfo.vertexAttributeDescriptionCount = static_cast<uint32_t>(attributeDescriptions.size());
-		vertexInputInfo.pVertexAttributeDescriptions = attributeDescriptions.data();
-		vertexInputInfo.vertexBindingDescriptionCount = static_cast<uint32_t>(bindingDescriptions.size());
-		vertexInputInfo.pVertexBindingDescriptions = bindingDescriptions.data();
+		vertexInputInfo.vertexAttributeDescriptionCount = static_cast<uint32_t>(rAttributeDescriptions.size());
+		vertexInputInfo.pVertexAttributeDescriptions = rAttributeDescriptions.data();
+		vertexInputInfo.vertexBindingDescriptionCount = static_cast<uint32_t>(rBindingDescriptions.size());
+		vertexInputInfo.pVertexBindingDescriptions = rBindingDescriptions.data();
 
 		VkGraphicsPipelineCreateInfo pipelineInfo{};
 		pipelineInfo.sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO;
