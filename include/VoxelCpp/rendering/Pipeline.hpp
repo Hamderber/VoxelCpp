@@ -15,6 +15,8 @@ namespace Rendering
 		PipelineConfigInfo(const PipelineConfigInfo &) = delete;
 		PipelineConfigInfo &operator=(const PipelineConfigInfo &) = delete;
 
+		std::vector<VkVertexInputBindingDescription> vBindingDescs{};
+		std::vector<VkVertexInputAttributeDescription> vAttributeDescs{};
 		VkPipelineViewportStateCreateInfo viewportInfo{};
 		VkPipelineInputAssemblyStateCreateInfo inputAssemblyInfo{};
 		VkPipelineRasterizationStateCreateInfo rasterizationInfo{};
