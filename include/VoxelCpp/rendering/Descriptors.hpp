@@ -39,7 +39,7 @@ namespace Rendering
 
         friend class DescriptorWriter;
     };
-#pragma endregon
+#pragma endregion
 #pragma region Descriptor Pool
     class DescriptorPool
     {

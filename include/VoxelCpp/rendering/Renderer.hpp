@@ -15,10 +15,15 @@
 
 namespace Rendering
 {
+	// Note: W for light vec4s is intensity
 	struct GlobalUBO
 	{
 		glm::mat4 projectionView{ 1.f };
-		glm::vec3 lightDirection = glm::normalize(glm::vec3{ 1.f, 3.f, 1.f });
+		glm::vec4 ambientLightColor{ 1.f, 1.f, 1.f, .02f };
+		glm::vec3 lightPosition{ 1.f };
+		// Potentially usable future data since this spacing is required for std140 compliance
+		uint32_t paddingUnused;
+		glm::vec4 lightColor{ 1.f };
 	};
 
 	class Renderer
