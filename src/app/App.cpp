@@ -140,9 +140,9 @@ namespace App
 				auto &go = kvp.second;
 				if (go.m_pPointLight)
 				{
-					go.transform.translation.x = circleCenter.x + a * glm::sin(w * totalTime);
-					go.transform.translation.z = circleCenter.z + a * glm::cos(w * totalTime);
-					go.transform.translation.y = circleCenter.y + a * .5f * glm::sin(w * 4.f * totalTime);
+					//go.transform.translation.x = circleCenter.x + a * glm::sin(w * totalTime);
+					//go.transform.translation.z = circleCenter.z + a * glm::cos(w * totalTime);
+					//go.transform.translation.y = circleCenter.y + a * .5f * glm::sin(w * 4.f * totalTime);
 
 					float t = totalTime * 1.5f;
 
@@ -167,6 +167,7 @@ namespace App
 				Rendering::GlobalUBO ubo{};
 				ubo.projectionMatrix = camera.projection_get();
 				ubo.viewMatrix = camera.view_get();
+				ubo.inverseViewMatrix = camera.inverse_view_get();
 				billboardSystem.update(frameInfo, ubo);
 				
 				vUboBuffers[frameIndex]->write_to_buffer(&ubo);

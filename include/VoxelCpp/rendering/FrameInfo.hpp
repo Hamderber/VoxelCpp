@@ -22,6 +22,7 @@ namespace Rendering
 	{
 		glm::mat4 projectionMatrix{ 1.f };
 		glm::mat4 viewMatrix{ 1.f };
+		glm::mat4 inverseViewMatrix{ 1.f };
 		glm::vec4 ambientLightColor{ 1.f, 1.f, 1.f, .02f };
 		glm::vec3 lightPosition{ 1.f };
 		// Potentially usable future data since this spacing is required for std140 compliance

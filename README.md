@@ -24,3 +24,6 @@
 - Engine design patterns https://gameprogrammingpatterns.com/
 - Shaders (GLSL) https://www.opengl-tutorial.org/
 - Billboards https://www.flipcode.com/archives/Billboarding-Excerpt_From_iReal-Time_Renderingi_2E.shtml
+- Modern 3D Graphics Programming https://github.com/paroj/gltut
+- Game Program Books (Many!) https://github.com/kurong00/GameProgramBooks/tree/master
+- Blinn-Phong Specular Lighting https://en.wikipedia.org/wiki/Blinn%E2%80%93Phong_reflection_model

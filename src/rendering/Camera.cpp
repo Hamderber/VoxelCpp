@@ -37,18 +37,15 @@ namespace Rendering
 		const glm::vec3 v{ glm::cross(w, u) };
 
 		m_viewMatrix = glm::mat4{ 1.f };
-		m_viewMatrix[0][0] = u.x;
-		m_viewMatrix[1][0] = u.y;
-		m_viewMatrix[2][0] = u.z;
-		m_viewMatrix[0][1] = v.x;
-		m_viewMatrix[1][1] = v.y;
-		m_viewMatrix[2][1] = v.z;
-		m_viewMatrix[0][2] = w.x;
-		m_viewMatrix[1][2] = w.y;
-		m_viewMatrix[2][2] = w.z;
+		m_viewMatrix[0][0] = u.x; m_viewMatrix[1][0] = u.y; m_viewMatrix[2][0] = u.z;
+		                          m_viewMatrix[1][1] = v.y; m_viewMatrix[2][1] = v.z;
+		m_viewMatrix[0][2] = w.x; m_viewMatrix[1][2] = w.y; m_viewMatrix[2][2] = w.z;
+		
 		m_viewMatrix[3][0] = -glm::dot(u, CAMERA_POS);
 		m_viewMatrix[3][1] = -glm::dot(v, CAMERA_POS);
 		m_viewMatrix[3][2] = -glm::dot(w, CAMERA_POS);
+
+		m_inverseViewMatrix = glm::inverse(m_viewMatrix);
 	}
 
 	void Camera::set_view_target(const glm::vec3 CAMERA_POS, const glm::vec3 TARGET, const glm::vec3 UP)
@@ -77,12 +74,14 @@ namespace Rendering
 
 		// Column-major (GLM)
 		m_viewMatrix = glm::mat4{ 1.f };
-		m_viewMatrix[0][0] = right.x;  m_viewMatrix[1][0] = right.y;  m_viewMatrix[2][0] = right.z;
-		m_viewMatrix[0][1] = up.x;     m_viewMatrix[1][1] = up.y;     m_viewMatrix[2][1] = up.z;
+		m_viewMatrix[0][0] = right.x;   m_viewMatrix[1][0] = right.y;   m_viewMatrix[2][0] = right.z;
+		m_viewMatrix[0][1] = up.x;      m_viewMatrix[1][1] = up.y;      m_viewMatrix[2][1] = up.z;
 		m_viewMatrix[0][2] = forward.x; m_viewMatrix[1][2] = forward.y; m_viewMatrix[2][2] = forward.z;
 
 		m_viewMatrix[3][0] = -glm::dot(right, CAMERA_POS);
 		m_viewMatrix[3][1] = -glm::dot(up, CAMERA_POS);
 		m_viewMatrix[3][2] = -glm::dot(forward, CAMERA_POS);
+
+		m_inverseViewMatrix = glm::inverse(m_viewMatrix);
 	}
 }
