@@ -13,18 +13,29 @@ const vec2 OFFSETS[6] = vec2[](
 
 layout (location = 0) out vec2 fragOffset;
 
+struct PointLight
+{
+	vec4 position;
+	vec4 color;
+};
+
 layout (set = 0, binding = 0) uniform GlobalUbo
 {
 	mat4 projectionMatrix;
 	mat4 viewMatrix;
 	vec4 ambientLightColor;
-	vec3 lightPosition;
-	// same as uint32_t
 	uint paddingUnused;
-	vec4 lightColor;
+	// TODO: pass size as specialization constant (or design in a way where this isn't used at all!)
+	PointLight pointLights[10];
+	uint lightCount;
 } globalUbo;
 
-const float RADIUS = 0.1;
+layout (push_constant) uniform Push
+{
+	vec4 position;
+	vec4 color;
+	float radius;
+} push;
 
 void main()
 {
@@ -33,9 +44,9 @@ void main()
 	vec3 cameraUpWorld = { globalUbo.viewMatrix[0][1], globalUbo.viewMatrix[1][1], globalUbo.viewMatrix[2][1] };
 
 	// Billboard at light postion
-	vec3 positionWorld = globalUbo.lightPosition.xyz
-		+ RADIUS * fragOffset.x * cameraRightWorld
-		+ RADIUS * fragOffset.y * cameraUpWorld;
+	vec3 positionWorld = push.position.xyz
+		+ push.radius * fragOffset.x * cameraRightWorld
+		+ push.radius * fragOffset.y * cameraUpWorld;
 
 	gl_Position = globalUbo.projectionMatrix * globalUbo.viewMatrix * vec4(positionWorld, 1.0);
 }

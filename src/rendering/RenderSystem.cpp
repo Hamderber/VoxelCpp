@@ -38,6 +38,8 @@ namespace Rendering
 		for (auto &kvp : rFrameInfo.rGameObjects)
 		{
 			auto &go = kvp.second;
+			if (!go.pModel) continue;
+
 			Rendering::SimplePushConstantData push{};
 			auto modelMatrix = go.transform.matrix();
 			push.modelMatrix = modelMatrix;

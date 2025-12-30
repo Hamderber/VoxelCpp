@@ -20,6 +20,26 @@ namespace Rendering
 		pipeline_destroy();
 	}
 
+	void BillboardSystem::update(FrameInfo &rFrameInfo, GlobalUBO &rGlobalUBO)
+	{
+		// no bounds checkign at the moment regarding number of lights and light capacity
+		size_t index{};
+		for (auto &kvp : rFrameInfo.rGameObjects)
+		{
+			auto &go = kvp.second;
+			if (!go.m_pPointLight) continue;
+
+			rGlobalUBO.pPointLights[index].positon = glm::vec4(go.transform.translation, 1.f);
+
+			// Is this even used?
+			rGlobalUBO.pPointLights[index].color = glm::vec4(go.color, go.m_pPointLight->lightIntensity);
+
+			index++;
+		}
+
+		rGlobalUBO.lightCount = index;
+	}
+
 	void BillboardSystem::render(FrameInfo &rFrameInfo)
 	{
 		m_pPipeline->bind(rFrameInfo.commandBuffer);
@@ -27,16 +47,29 @@ namespace Rendering
 		vkCmdBindDescriptorSets(rFrameInfo.commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_pipelineLayout, 0, 1,
 								&rFrameInfo.globalDescSet, 0, nullptr);
 
-		// Square billboard test
-		vkCmdDraw(rFrameInfo.commandBuffer, 6, 1, 0, 0);
+		for (auto &kvp : rFrameInfo.rGameObjects)
+		{
+			auto &go = kvp.second;
+			if (!go.m_pPointLight) continue;
+
+			PointLightPushConstants push{};
+			push.position = glm::vec4(go.transform.translation, 1.f);
+			push.color = glm::vec4(go.color, go.m_pPointLight->lightIntensity);
+			push.radius = go.transform.uniformScale;
+
+			vkCmdPushConstants(rFrameInfo.commandBuffer, m_pipelineLayout, VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT,
+							   0, sizeof(PointLightPushConstants), &push);
+
+			vkCmdDraw(rFrameInfo.commandBuffer, 6, 1, 0, 0);
+		}
 	}
 
 	void BillboardSystem::pipeline_layout_create(VkDescriptorSetLayout globalDescSetLayout)
 	{
-		//VkPushConstantRange pushConstantRange{};
-		//pushConstantRange.stageFlags = VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT;
-		//pushConstantRange.offset = 0;
-		//pushConstantRange.size = sizeof(SimplePushConstantData);
+		VkPushConstantRange pushConstantRange{};
+		pushConstantRange.stageFlags = VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT;
+		pushConstantRange.offset = 0;
+		pushConstantRange.size = sizeof(PointLightPushConstants);
 
 		std::vector<VkDescriptorSetLayout> vDescSetLayouts{ globalDescSetLayout };
 
@@ -45,8 +78,8 @@ namespace Rendering
 		layoutInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
 		layoutInfo.setLayoutCount = static_cast<uint32_t>(vDescSetLayouts.size());
 		layoutInfo.pSetLayouts = vDescSetLayouts.data();
-		layoutInfo.pushConstantRangeCount = 0;
-		layoutInfo.pPushConstantRanges = nullptr;
+		layoutInfo.pushConstantRangeCount = 1;
+		layoutInfo.pPushConstantRanges = &pushConstantRange;
 
 		if (vkCreatePipelineLayout(m_rDevice.device(), &layoutInfo, nullptr, &m_pipelineLayout) != VK_SUCCESS)
 		{

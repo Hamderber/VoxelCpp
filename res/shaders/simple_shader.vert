@@ -9,15 +9,21 @@ layout (location = 0) out vec3 fragColor;
 layout (location = 1) out vec3 fragPosWorld;
 layout (location = 2) out vec3 fragNormalWorld;
 
+struct PointLight
+{
+	vec4 position;
+	vec4 color;
+};
+
 layout (set = 0, binding = 0) uniform GlobalUbo
 {
 	mat4 projectionMatrix;
 	mat4 viewMatrix;
 	vec4 ambientLightColor;
-	vec3 lightPosition;
-	// same as uint32_t
 	uint paddingUnused;
-	vec4 lightColor;
+	// TODO: pass size as specialization constant (or design in a way where this isn't used at all!)
+	PointLight pointLights[10];
+	uint lightCount;
 } globalUbo;
 
 layout (push_constant) uniform Push

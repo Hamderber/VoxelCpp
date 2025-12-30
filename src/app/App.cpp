@@ -66,6 +66,9 @@ namespace App
 		cubeObj.transform.translation = { 0.f, -5.f, 0.f };
 		cubeObj.transform.uniformScale = 4.5f;
 		m_mGameObjects.emplace(cubeObj.id(), std::move(cubeObj));
+
+		auto pointLight = Game::GameObject::make_point_light(.05f, glm::vec3(0, 1.f, 1.f), 1.f);
+		m_mGameObjects.emplace(pointLight.id(), std::move(pointLight));
 	}
 
 	// TODO: Make this not a complete mess
@@ -129,13 +132,25 @@ namespace App
 			camera.projection_perspective_set(glm::radians(50.f), m_renderer.aspect_ratio(), 0.1f, 50.f);
 
 			// Test "animations"
-			/*float a = 2.f;
-			float w = 2.f;
+			float a = 1.5f;
+			float w = 1.f;
+			glm::vec3 circleCenter(0.f, 2.f, 0.f);
 			for (auto &kvp : m_mGameObjects)
 			{
 				auto &go = kvp.second;
-				go.transform.translation.y = a * glm::sin(w * totalTime);
-			}*/
+				if (go.m_pPointLight)
+				{
+					go.transform.translation.x = circleCenter.x + a * glm::sin(w * totalTime);
+					go.transform.translation.z = circleCenter.z + a * glm::cos(w * totalTime);
+					go.transform.translation.y = circleCenter.y + a * .5f * glm::sin(w * 4.f * totalTime);
+
+					float t = totalTime * 1.5f;
+
+					go.color.r = 0.5f + 0.5f * sin(t);
+					go.color.g = 0.5f + 0.5f * sin(t + glm::two_pi<float>() / 3.0f);
+					go.color.b = 0.5f + 0.5f * sin(t + 2.0f * glm::two_pi<float>() / 3.0f);
+				}
+			}
 			
 			if (auto commandBuffer = m_renderer.frame_begin())
 			{
@@ -152,6 +167,7 @@ namespace App
 				Rendering::GlobalUBO ubo{};
 				ubo.projectionMatrix = camera.projection_get();
 				ubo.viewMatrix = camera.view_get();
+				billboardSystem.update(frameInfo, ubo);
 				
 				vUboBuffers[frameIndex]->write_to_buffer(&ubo);
 				vUboBuffers[frameIndex]->flush();

@@ -10,6 +10,13 @@
 
 namespace Game
 {
+	// TODO: Change this to use a single draw command and have the indexed cumulative light go be iterated in the shader
+	// rather than multiple draw calls on a per-light basis.
+	struct PointLightComponent
+	{
+		float lightIntensity = 1.f;
+	};
+
 	class GameObject
 	{
 	public:
@@ -33,6 +40,10 @@ namespace Game
 		glm::vec3 color{};
 		Physics::Transform transform{};
 
+		// TODO: Don't do this. Make an actual point light object because doing it this way is stupid
+		std::unique_ptr<PointLightComponent> m_pPointLight = nullptr;
+		static GameObject make_point_light(float radius, glm::vec3 color, float intensity);
+	
 	private:
 		GameObject(id_t id) : m_ID{ id } {};
 

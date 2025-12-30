@@ -2,11 +2,22 @@
 #include <vulkan/vulkan_core.h>
 #include <memory>
 #include <VoxelCpp/rendering/Pipeline.hpp>
+#include <VoxelCpp/input/KeyboardMovementController.hpp>
+#include <glm/glm.hpp>
+#include <glm/fwd.hpp>
+#include "FrameInfo.hpp"
 
 namespace Rendering { class Device; class FrameInfo; }
 
 namespace Rendering
 {
+	struct PointLightPushConstants
+	{
+		glm::vec4 position{};
+		glm::vec4 color{};
+		float radius;
+	};
+
 	class BillboardSystem
 	{
 	public:
@@ -16,6 +27,7 @@ namespace Rendering
 		BillboardSystem(const BillboardSystem &) = delete;
 		BillboardSystem &operator=(const BillboardSystem &) = delete;
 
+		void update(FrameInfo &rFrameInfo, GlobalUBO &rGlobalUBO);
 		void render(FrameInfo &rFrameInfo);
 
 	private:
